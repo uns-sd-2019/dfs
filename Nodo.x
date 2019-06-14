@@ -6,7 +6,7 @@ struct paths{
   char pathDFS[64];
   char filename[64];
 };
-program NODOCLIENTE{
+program NODO{
   version VERSION1{
     int subir(paths) = 1;
     string bajar(string) = 2;

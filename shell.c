@@ -4,8 +4,8 @@ Puede haber errores en el manejo de las llamadas a rpc por el tema de punteros!.
 */
 
 
-#include "CoordinadorCliente.h"
-#include "NodoCliente.h"
+#include "Coordinador.h"
+#include "Nodo.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <rpc/rpc.h>
@@ -26,7 +26,7 @@ int main(int argc,char *argv[]) {
   //Capturar ip del servidor.
   server = argv[1];
   /*
-  clntcoor = clnt_create(server,COORDINADORCLIENTE, VERSION1, "TCP");
+  clntcoor = clnt_create(server,COORDINADOR, VERSION1, "TCP");
   if(clntcoor == (CLIENT *) NULL) {
     printf("No hubo conexión\n");
     exit(1);
@@ -64,7 +64,7 @@ int main(int argc,char *argv[]) {
         //Pedimos al coordinador la direccion al nodo correspondiente.
         nodo = *rqsubir_1(&ruta,clntcoor);
         //Iniciamos la conexión con el nodo:
-        clntnodo = clnt_create(nodo,NODOCLIENTE, VERSION1, "TCP");
+        clntnodo = clnt_create(nodo,NODO, VERSION1, "TCP");
         if(clntnodo == (CLIENT *) NULL) {
           printf("No hubo conexión con el nodo.\n");
           exit(1);
@@ -86,7 +86,7 @@ int main(int argc,char *argv[]) {
         //Pedimos al coordinador la direccion al nodo correspondiente.
         nodo = *rqbajar_1(&rutaDFS,clntcoor);
         //Iniciamos la conexión con el nodo:
-        clntnodo = clnt_create(nodo,NODOCLIENTE, VERSION1, "TCP");
+        clntnodo = clnt_create(nodo,NODO, VERSION1, "TCP");
         if(clntnodo == (CLIENT *) NULL) {
           printf("No hubo conexión con el nodo.\n");
           exit(1);

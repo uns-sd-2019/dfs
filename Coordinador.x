@@ -5,11 +5,11 @@
   subirACK: El nodo avisa al coordinador que un archivo fue cargado al DFS de manera correcta.
   (Hay que ver el tipo de retorno (solo informa errores))
 */
-program COORDINADORCLIENTE{
+program COORDINADOR{
   version VERSION1{
     string rqsubir(string) = 1;
     string rqbajar(string) = 2;
     string ls() = 3;
-    int subirACK(string) = 4;
+    int subirack(string) = 4;
   }=1;
 }=0x200000001;
