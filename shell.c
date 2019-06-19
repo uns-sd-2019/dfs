@@ -1,9 +1,4 @@
-/*
-*****IMPORTANTE*****
-Puede haber errores en el manejo de las llamadas a rpc por el tema de punteros!.
-*/
-
-
+#include "filehandler.h"
 #include "Coordinador.h"
 #include "Nodo.h"
 #include <stdio.h>
@@ -17,7 +12,7 @@ int main(int argc,char *argv[]) {
   CLIENT *clntnodo;   // Se usara para comunicarse con el nodo a relacionarse.
   char *server;
   char *nodo;         // Se usara para almacenar la direccion ip del nodo a relacionarse.
-  char ipNodo[15];
+  char ipNodo[16];
   //Caso en que no se paso unicamente la direccion ip del servidor por parametro.
   if (argc != 2) {
     printf ("Error cantidad de parametros.\n");
@@ -70,11 +65,31 @@ int main(int argc,char *argv[]) {
           exit(1);
         }
         //Armar el struct para pasar como parametro.
-        paths rutas;
+        int resultadoSubir;
+        file_to_send  sendfile;
+        strcpy(sendfile.name,rutaDFS);
+        file_info* fi = malloc(sizeof(file_info));
+        read_file(ruta,fi);
+        sendfile.data=fi->buffer;
+    		sendfile.size=fi->buffer_length;
+    		printf("Shell: El contenido del buffer a transmitir es: %s y su longitud %i\n", sendfile.data,sendfile.size);
+        resultadoSubir=*subir_1(&sendfile,clntnodo);
+        if (&resultadoSubir == (int*) NULL) {
+//No se que es esta linea    			clnt_perror (clnt, "call failed");
+    		}
+
+    		else{
+    			if(resultadoSubir==0)
+    				printf("Shell: subida de archivo exitosa\n");
+    			else
+    				printf("Shell: ocurrio un error por parte del servidor\n");
+    		}
+/*
         strcpy(rutas.pathDFS,rutaDFS);
         strcpy(rutas.filename,ruta);
+*/
         //Enviamos el archivo al nodo.
-        subir_1(&rutas,clntnodo);
+        //subir_1(&rutas,clntnodo);
       }break;
       // Opcion 3: bajar(,file)
 
@@ -83,6 +98,9 @@ int main(int argc,char *argv[]) {
         printf("Ingrese la ruta del archivo en el DFS.\n");
         char *rutaDFS = (char*) malloc(64);
         scanf("%s",rutaDFS);
+        printf("Ingrese el nombre del archivo en su sistema.\n");
+        char *ruta = (char*) malloc(64);
+        scanf("%s",ruta);
         //Pedimos al coordinador la direccion al nodo correspondiente.
         nodo = *rqbajar_1(&rutaDFS,clntcoor);
         //Iniciamos la conexión con el nodo:
@@ -91,8 +109,30 @@ int main(int argc,char *argv[]) {
           printf("No hubo conexión con el nodo.\n");
           exit(1);
         }
-        //Enviamos el archivo al nodo.
-        bajar_1(&rutaDFS,clntnodo);
+        //Creamos la estructura para recibir al archivo.
+        file_to_send *recivedFile;
+        //Recibimos el archivo al nodo.
+        recivedFile = bajar_1(&rutaDFS,clntnodo);
+
+        if (recivedFile == (file_to_send *) NULL) {
+//No se que es esta linea    			clnt_perror (clnt, "call failed");
+    		}
+        //Guardamos el archivo en el almacenamiento permanente.
+        int file_length = recivedFile->size;
+    		char* buffer = recivedFile->data;
+    		FILE* newfile;
+        if (!(newfile= (FILE*) fopen(rutaDFS,"wb")) )
+    		//if (!(newfile= (FILE*) fopen(filename,"w")) )
+    		{
+    			printf("Shell: Error al crear el nuevo archivo\n");
+    			fclose(newfile);
+    			exit(0);
+    		}
+        printf("Shell: El contenido del buffer es %s\n", buffer );
+        int items_writen = fwrite(buffer, file_length, 1 ,newfile);
+        printf("Shell: Se escribieron %i bytes en el archivo %s\n", file_length*items_writen, ruta);
+
+        fclose(newfile);
       }break;
     }
   }

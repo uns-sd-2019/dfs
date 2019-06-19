@@ -1,0 +1,26 @@
+all : filetransfer_client filetransfer_server
+.PHONY : all
+
+filetransfer_server : filetransfer_server.c filetransfer_svc.o filetransfer_xdr.o filehandler.o
+	gcc -lnsl -o filetransfer_server filetransfer_server.c filetransfer_svc.o filetransfer_xdr.o filehandler.o
+
+filetransfer_svc.o : filetransfer_svc.c
+	gcc -lnsl -c filetransfer_svc.c
+
+filetransfer_client : filetransfer_client.c filetransfer_clnt.o filetransfer_xdr.o filehandler.o
+	gcc -lnsl -o filetransfer_client filetransfer_client.c filetransfer_clnt.o filetransfer_xdr.o filehandler.o
+
+filetransfer_clnt.o : filetransfer_clnt.c
+	gcc -lnsl -c filetransfer_clnt.c
+
+filehandler.o : filehandler.c
+	gcc -c filehandler.c
+
+filetransfer_xdr.o : filetransfer_xdr.c
+	gcc -lnsl -c filetransfer_xdr.c
+
+filetransfer_clnt.c filetransfer_svc.c filetransfer_client.c filetransfer_server.c : filetransfer.x
+	rpcgen filetransfer.x
+
+ clean :
+	$(RM) *.o filetransfer_client filetransfer_server filetransfer_clnt.c filetransfer_svc.c filetransfer_xdr.c filetransfer.h

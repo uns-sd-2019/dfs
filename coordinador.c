@@ -43,7 +43,7 @@ char ** rqsubir_1_svc(char ** path, struct svc_req *cliente){
   return (&resultadoFinal);
 }
 char ** rqbajar_1_svc(char ** path, struct svc_req *cliente){
-  printf("El nodo pidio por el archivo %s.\n",*path);
+  printf("El cliente pidio por el archivo %s.\n",*path);
   int ipLoc;
   static char * resultadoFinal;
   resultadoFinal = malloc(16);
@@ -60,7 +60,7 @@ char ** ls_1_svc(void * vacio, struct svc_req *cliente){
   // Retornar el arbol de directorios (falta crearlo).
   static char * resultadoFinal;
   resultadoFinal = malloc(16);
-  resultadoFinal = "/home/sd";      // IP para probar.
+  resultadoFinal = "/home/sd";      // Ruta para probar.
   return (&resultadoFinal);
 }
 
