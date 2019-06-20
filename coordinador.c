@@ -20,7 +20,7 @@ struct nodo{
 };
 
 
-struct nodo tablaNodos[MAX_NODOS];	//Tabla que mantendra la 
+struct nodo tablaNodos[MAX_NODOS];	//Tabla que mantendra la
 int cant_nodos=0;
 
 struct celdas tablaArchivos[TABLA_SIZE];	//Tabla que tendra un maximo de TABLA_SIZE elementos compuestos de nombre, bit de valido e IP del nodo que contenga ese archivo
@@ -96,7 +96,7 @@ int * subirack_1_svc(char ** path, struct svc_req *cliente){
   return &codigo;
 }
 
-int * anunciarNodo_1_svc(char** direccion,struct svc_req *cliente){
+int * anunciarnodo_1_svc(char** direccion,struct svc_req *cliente){
 	//Funcion invocada por el nodo al iniciar su ejecucion, para anunciar su direccion IP
 	static int result;
 
@@ -107,13 +107,14 @@ int * anunciarNodo_1_svc(char** direccion,struct svc_req *cliente){
 	if(!buscarTablaNodos( *direccion ))
 	{
 		printf("El nodo %s no se encuentra registrado, agregando a la tabla de nodos activos\n", *direccion );
-		struct nodo nuevo_nodo = malloc(sizeof(struct nodo));
-		strcpy(nuevo_nodo.direccion,*direccion);
-		nuevo_nodo.carga=0;
-		tablaNodos[cant_nodos]=nuevo_nodo;
+		struct nodo *nuevo_nodo = malloc(sizeof(struct nodo));
+
+		strcpy(nuevo_nodo->direccion,*direccion);
+		nuevo_nodo->carga=0;
+		tablaNodos[cant_nodos]=*nuevo_nodo;
 		result=cant_nodos;
 		cant_nodos++;
-		printf("Se agrego con exito el nodo a la tabla de nodos activos\n" );	
+		printf("Se agrego con exito el nodo a la tabla de nodos activos\n" );
 
 	}
 	else
@@ -125,13 +126,13 @@ int * anunciarNodo_1_svc(char** direccion,struct svc_req *cliente){
 	return &result;
 }
 
-int* bajarNodo_1_svc(char** direccion,struct svc_req *cliente){
+int* bajarnodo_1_svc(char** direccion,struct svc_req *cliente){
 	//Funcion invocada por el nodo antes de terminar su ejecucion, para bajar su ip de la lista de nodos activos
 	static int result;
 
 	printf("El nodo %s quiere bajarse de la lista de nodos activos\n", *direccion );
 
-	printf("Buscando al nodo en la lista...\n", );
+	printf("Buscando al nodo en la lista...\n");
 
 	int ubicacionNodo = buscarTablaNodos(*direccion);
 

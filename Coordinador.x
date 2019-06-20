@@ -11,7 +11,7 @@ program COORDINADOR{
     string rqbajar(string) = 2;
     string ls() = 3;
     int subirack(string) = 4;
-    int anunciarNodo(string) = 5;
-    int bajarNodo(string) = 6;
+    int anunciarnodo(string) = 5;
+    int bajarnodo(string) = 6;
   }=1;
 }=0x200000001;
