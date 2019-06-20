@@ -1,5 +1,6 @@
 #include "filehandler.h"
 #include "Coordinador.h"
+#include "Nodo.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -24,6 +25,7 @@ void menu(){
 	char *rutaDFS = (char*) malloc(64);		// PATH del DFS (el usuario lo obtiene mediante ls)
 	char *rutaLocal = (char*) malloc(64);	// PATH de un archivo local del usuario (ej: /home/user/myfile.txt)
 	char *arbolDFS = (char*) malloc(1024);	// Arbol de directorios completo del DFS (respuesta del ls)
+	char *vacio;  //Puntero vacio que se debe enviar en la consulta RPC ls. Hay que declararlo char* y castearlo cuando se invoca ls
 
 	while (stop == 0) {
 		printf(" --------------------- MENU ------------------- \n");
@@ -42,8 +44,8 @@ void menu(){
 
 		switch (menuoption) {
 			case 1: ////////////////////////////////////////// ls()
-				void *vacio;  //Puntero vacio que se debe enviar en la consulta RPC.
-				arbolDFS = ls_1(vacio,clntcoor);
+				
+				arbolDFS = *( ls_1((void*)&vacio,clntcoor) );
 				//arbolDFS = "├ Directorio1\n│\t├ Archivo1\n│\t└ Archivo2\n└ Archivo3"; // para testing de formato
 				printf ("El arbol de directorios es:\n\n");
 				printf("%s\n", arbolDFS);
@@ -78,7 +80,7 @@ void menu(){
 				file_to_send sendfile;
 				strcpy(sendfile.name, rutaDFS);
 				file_info* fi = malloc(sizeof(file_info));
-				read_file(ruta,fi);
+				read_file(rutaLocal,fi);	//read_file toma el contenido del archivo en rutaLocal y lo carga en un buffer junto con tu tamaño
 				sendfile.data=fi->buffer;
 				sendfile.size=fi->buffer_length;
 				printf("Shell: El contenido del buffer a transmitir es: %s y su longitud %i\n", sendfile.data, sendfile.size);

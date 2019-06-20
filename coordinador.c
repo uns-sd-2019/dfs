@@ -1,9 +1,9 @@
 #include "Coordinador.h"
+#include "operacionesTabla.h"
 #include <rpc/rpc.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "operacionesTabla.c"
 
 #define TABLA_SIZE 64
 #define MAX_NODOS 10
@@ -67,10 +67,10 @@ void agregarEnTablaArchivos(char * path, int bitValido, char * ipNodo){
 	cant_archivos++;
 	
 	//agrego en la tabla de archivos para mantener consistencia
-	if(strcmp(bitValido,"0")){
-		operacionesTabla.agregar(tablaArchivosFile,path,0,ipNodo);
+	if(bitValido==0){
+		optabla_agregar(tablaArchivosFile,path,0,ipNodo);
 	}else{
-		operacionesTabla.agregar(tablaArchivosFile,path,1,ipNodo);
+		optabla_agregar(tablaArchivosFile,path,1,ipNodo);
 	}
 	
 	//aumento la carga del nodo ya que le agregue un archivo a el
@@ -95,7 +95,7 @@ int eliminarDeTablaArchivos(char * path){
 		strcpy(tablaArchivos[cant_archivos-1].ipNodo,"");
 		tablaArchivos[pos].disponible = tablaArchivos[cant_archivos-1].disponible;
 		//elimino la entrada del archivo de consistencia
-		operacionesTabla.suprimir(tablaArchivosFile, path);
+		optabla_suprimir(tablaArchivosFile, path);
 		cant_archivos--;
 		return 0;
 	}else{
@@ -106,8 +106,8 @@ int eliminarDeTablaArchivos(char * path){
 //Función para encontrar el nodo que tenga menor carga, retorna la IP del nodo con menor carga
 char* obtenerNodoMenosUsado(){
 	int min = 100000;
-	static char * ip;
-	ip = malloc(16);
+	static char * resultadoFinal;
+	resultadoFinal = malloc(16);
 	int i;
 	for(i=0;i<cant_nodos; i++) {
 		if(tablaNodos[i].carga < min){
@@ -115,7 +115,7 @@ char* obtenerNodoMenosUsado(){
 			strcpy(resultadoFinal,tablaNodos[i].direccion);
 		}
 	}
-	return ip;
+	return resultadoFinal;
 }
 
 char ** rqsubir_1_svc(char ** path, struct svc_req *cliente){
@@ -127,7 +127,7 @@ char ** rqsubir_1_svc(char ** path, struct svc_req *cliente){
   if (ipLoc=buscarTablaArchivos(*path)){     //Si existe el archivo
     // Informar al nodo anterior que actualice el archivo y marcar al archivo como no disponible, en la tabla y en el archivo de consistencia.
 	tablaArchivos[ipLoc].disponible = 0;
-	operacionesTabla.modificar(tablaArchivosFile,tablaArchivos[ipLoc].nombre,tablaArchivos[ipLoc].nombre,tablaArchivos[ipLoc].disponible,tablaArchivos[ipLoc].ipNodo);
+	optabla_modificar(tablaArchivosFile,tablaArchivos[ipLoc].nombre,tablaArchivos[ipLoc].nombre,tablaArchivos[ipLoc].disponible,tablaArchivos[ipLoc].ipNodo);
     // Retornar el ip de la tabla
     strcpy(resultadoFinal,tablaArchivos[ipLoc].ipNodo);
   } else {

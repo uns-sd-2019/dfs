@@ -28,6 +28,8 @@ int * subir_1_svc(file_to_send * argp, struct svc_req *rqstp){
 
 	fclose(newfile);
 
+	printf("Nodo: Notificando al coordinador la subida del archivo...\n");
+
 	result= 0;
 
 	return &result;

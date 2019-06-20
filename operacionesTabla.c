@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "operacionesTabla.h"
 
 /*
 * 
@@ -13,7 +14,7 @@ asi tal cual (definir un archivo de nombre "file.txt" con la tabla adentro)
 */
 
 //agregara una entrada a la tabla al final del archivo
-void agregar(char * filename, char * path, char * bitValido, char * IP){	
+void optabla_agregar(char * filename, char * path, int bitValido, char * IP){	
 	FILE *file = fopen ( filename, "r+" );
 
 	//tengo que definir un buffer porque el strcat pide memoria "definida" no en el aire	
@@ -21,7 +22,7 @@ void agregar(char * filename, char * path, char * bitValido, char * IP){
 	strncpy(buffer,path,256);
 	fseek(file,0,SEEK_END);
 	strcat(buffer,"@");
-	strcat(buffer,bitValido);
+	bitValido ? strcat(buffer,"1") : strcat(buffer,"0");
 	strcat(buffer,"@");
 	strcat(buffer,IP);
 	strcat(buffer,"\n");
@@ -33,7 +34,7 @@ void agregar(char * filename, char * path, char * bitValido, char * IP){
 
 
 //modificara aquella linea de la tabla con el path, poniendo el nuevo path, nuevo bit, o IP
-int modificar(char * filename, char * path, char * newPath, char * bitValido, char * IP){
+int optabla_modificar(char * filename, char * path, char * newPath, int bitValido, char * IP){
 	
 	char delim[]="@";
 	FILE *file = fopen ( filename, "r+" );
@@ -56,7 +57,7 @@ int modificar(char * filename, char * path, char * newPath, char * bitValido, ch
 					char buffer[256];
 					strncpy(buffer,newPath,256);
 					strcat(buffer,"@");
-					strcat(buffer,bitValido);
+					bitValido ? strcat(buffer,"1") : strcat(buffer,"0");
 					strcat(buffer,"@");
 					strcat(buffer,IP);
 					strcat(buffer,"\n");
@@ -84,7 +85,7 @@ int modificar(char * filename, char * path, char * newPath, char * bitValido, ch
 }
 
 //eliminara aquella linea de la tabla que se corresponda con el path
-int suprimir(char * filename, char * path){
+int optabla_suprimir(char * filename, char * path){
 	
 	char delim[]="@";
 	FILE *file = fopen ( filename, "r+" );
@@ -127,7 +128,7 @@ int suprimir(char * filename, char * path){
 }
 
 //Leera el contenido del archivo que tiene la tabla
-int leer(char * filename){
+int optabla_leer(char * filename){
 	char delim[]="@";
 	FILE *file = fopen ( filename, "r" );
 	if ( file != NULL ){
@@ -165,19 +166,6 @@ int leer(char * filename){
 		perror ( filename ); 
 	}
 	return 0;
-}
-
-int main(int argc, char *argv[]) {
-	
-	char * path = "path";
-	char * bit = "1";
-	char * IP = "hola";
-	char * filename = "file.txt";
-	leer(filename);
-	//agregar(filename,path,bit,IP);
-	//int exitoso = modificar(filename,path,path,bit,IP);
-	//int exitoso = suprimir(filename,path);
-	exit (0);
 }
 
 
