@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <rpc/rpc.h>
 #include <string.h>
+
 //Al iniciar el cliente se carga la direccion ip del servidor: cliente(ip)
 int main(int argc,char *argv[]) {
   int opcion=0;

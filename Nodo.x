@@ -15,11 +15,13 @@ struct file_to_send{
 	int size;
 };
 
-
+/*
+	Lo comento por ahora, no se si lo vamos a usar
 struct paths{
   char pathDFS[64];
   char filename[64];
 };
+*/
 program NODO{
   version VERSION1{
     int subir(file_to_send) = 1;
