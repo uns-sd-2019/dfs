@@ -14,4 +14,4 @@ program COORDINADOR{
     int anunciarnodo(string) = 5;
     int bajarnodo(string) = 6;
   }=1;
-}=0x200000001;
+}=0x20000001;

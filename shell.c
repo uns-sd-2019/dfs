@@ -69,6 +69,7 @@ void menu(){
 
 				// Pedimos al coordinador la direccion al nodo correspondiente.
 				nodo = *rqsubir_1(&rutaDFS,clntcoor);
+				printf("Recibi la direccion %s\n", nodo );
 				// Iniciamos la conexión con el nodo
 				clntnodo = clnt_create(nodo, NODO, VERSION1, "TCP");
 				if(clntnodo == (CLIENT *) NULL) {
@@ -169,13 +170,13 @@ int main(int argc, char *argv[]) {
 	coordinador = argv[1]; // Capturar ip del servidor coordinador.
 	
 	// Conectarse con el servidor coordinador
-	/*
+	
 	clntcoor = clnt_create(coordinador, COORDINADOR, VERSION1, "TCP");
 	if(clntcoor == (CLIENT *) NULL) {
 	  printf("ERROR: Fallo la conexion con el coordinador.\n");
 	  exit(1);
 	}
-	*/
+	
 	
 	menu();
 }

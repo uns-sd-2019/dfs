@@ -29,30 +29,57 @@ int cant_nodos=0;
 struct celda tablaArchivos[TABLA_SIZE];	//Tabla que tendra un maximo de TABLA_SIZE elementos compuestos de nombre, bit de valido e IP del nodo que contenga ese archivo
 int cant_archivos=0;     //Cuenta los archivos almacenados en la tabla.
 
+void listarTablaArchivos()
+//Procedimiento con fines de debugging
+{
+	printf("Tabla de archivos:\n");
+	for (int i = 0; i < cant_archivos; i++)
+	{
+		printf("\tRuta: %s, Valido: %i, Nodo: %s\n", tablaArchivos[i].nombre, tablaArchivos[i].disponible, tablaArchivos[i].ipNodo );
+	}
+}
+
 //FIX: OJO CON ESTA FUNCIÓN, SI EL ARCHIVO ESTA EN LA POSICIÓN 0 DE LA TABLA, ENTONCES SERÍA CONSIDERADO ERROR
 //ARREGLAR
+//FIX PROPUESTO: GUARDAR EN LA VARIABLE POSICION LA MISMA SI ES QUE APARECE Y RETORNARLA, SINO RETORNAR -1
 //Funcion para buscar si el archivo existe a la tabla, retorna 0 en caso de que no este y la posicion en el arreglo en caso de que exista
 int buscarTablaArchivos(char* archivo){
   int aparecio = 0;
+  int posicion = 0;
   int i=0;
   for(i=0;i<cant_archivos && aparecio==0; i++) {
-    if(strcmp(tablaArchivos[i].nombre,archivo))
-      aparecio=i;
+    if(strcmp(tablaArchivos[i].nombre,archivo)==0)	//STRCMP RETORNA 0 SI SON IGUALES D:
+    {
+      printf("Encontre una coincidencia entre %s y %s\n", archivo, tablaArchivos[i].nombre );
+      aparecio=1;
+  	  posicion=i;
+  	}
   }
-  return aparecio;
+  if (aparecio)
+  	return posicion;
+  else
+  	return -1;
 }
 
 //FIX: OJO CON ESTA FUNCIÓN, SI EL NODO ESTA EN LA POSICIÓN 0 DE LA TABLA, ENTONCES SERÍA CONSIDERADO ERROR
 //ARREGLAR
- //Funcion para buscar si un nodo existe en la tabla de nodos, retorna 0 en caso de que no este y la posicion en la misma en caso de que exista
+//FIX PROPUESTO: GUARDAR EN LA VARIABLE POSICION LA MISMA SI ES QUE APARECE Y RETORNARLA, SINO RETORNAR -1
+//Funcion para buscar si un nodo existe en la tabla de nodos, retorna 0 en caso de que no este y la posicion en la misma en caso de que exista
 int buscarTablaNodos(char* nodo){
   int aparecio = 0;
+  int posicion = 0;
   int i=0;
   for(i=0;i<cant_nodos && aparecio==0; i++) {
-    if(strcmp(tablaNodos[i].direccion,nodo))
-      aparecio=i;
+    if(strcmp(tablaNodos[i].direccion,nodo)==0)	//STRCMP RETORNA 0 SI SON IGUALES D:
+    {
+      aparecio=1;
+  	  posicion=i;
+  	}
   }
-  return aparecio;
+  if (aparecio)
+  	return posicion;
+  else
+  	return -1;
 }
 
 
@@ -67,12 +94,12 @@ void agregarEnTablaArchivos(char * path, int bitValido, char * ipNodo){
 	cant_archivos++;
 	
 	//agrego en la tabla de archivos para mantener consistencia
-	if(bitValido==0){
+	/*if(bitValido==0){
 		optabla_agregar(tablaArchivosFile,path,0,ipNodo);
 	}else{
 		optabla_agregar(tablaArchivosFile,path,1,ipNodo);
 	}
-	
+	*/
 	//aumento la carga del nodo ya que le agregue un archivo a el
 	int i;
 	for(i=0;i<cant_nodos; i++) {
@@ -123,22 +150,28 @@ char ** rqsubir_1_svc(char ** path, struct svc_req *cliente){
   //Buscar en la tabla si existe el archivo deseado, sino elegir un nuevo nodo;
   int ipLoc;
   static char * resultadoFinal;
+  char* v_path=*path;
+  listarTablaArchivos();
   resultadoFinal = malloc(16);
-  if (ipLoc=buscarTablaArchivos(*path)){     //Si existe el archivo
+
+  
+  if ( (ipLoc=buscarTablaArchivos(v_path) !=-1 ) ){     //Si existe el archivo
     // Informar al nodo anterior que actualice el archivo y marcar al archivo como no disponible, en la tabla y en el archivo de consistencia.
+    printf("Ya existe el archivo %s\n",v_path);
 	tablaArchivos[ipLoc].disponible = 0;
-	optabla_modificar(tablaArchivosFile,tablaArchivos[ipLoc].nombre,tablaArchivos[ipLoc].nombre,tablaArchivos[ipLoc].disponible,tablaArchivos[ipLoc].ipNodo);
+	//optabla_modificar(tablaArchivosFile,tablaArchivos[ipLoc].nombre,tablaArchivos[ipLoc].nombre,tablaArchivos[ipLoc].disponible,tablaArchivos[ipLoc].ipNodo);
     // Retornar el ip de la tabla
     strcpy(resultadoFinal,tablaArchivos[ipLoc].ipNodo);
   } else {
     // Elegir un nuevo ip (el menos usado) y enviarlo al cliente
-    strcpy(resultadoFinal,obtenerNodoMenosUsado());
-	
-    resultadoFinal = "192.168.1.1";      // IP para probar. HAY QUE BORRAR ESTA LINEA LUEGO
+    //strcpy(resultadoFinal,obtenerNodoMenosUsado());
+	printf("Todavia no existe el archivo %s\n", v_path );
+    resultadoFinal = "localhost";      // IP para probar. HAY QUE BORRAR ESTA LINEA LUEGO
 	
 	//agrego en las tablas del coordinador el nuevo archivo, deberé modificar el bit de válido y ponerlo en 1 una vez subido HACER LUEGO
-	agregarEnTablaArchivos(*path,0,resultadoFinal);
+	agregarEnTablaArchivos(v_path,0,resultadoFinal);
   }
+  listarTablaArchivos();
   return (&resultadoFinal);
 }
 char ** rqbajar_1_svc(char ** path, struct svc_req *cliente){
@@ -171,22 +204,26 @@ int * subirack_1_svc(char ** path, struct svc_req *cliente){
   //agregada
   
   //VER COMO HACER PARA VERIFICAR SI FUE CORRECTO O NO, CUANDO TENGO UNA VARIABLE QUE ME INDICA SI ES CORRECTO, ENTONCES:
-  int esCorrecto = 1;
-  static int codigo = 0;
-  if(esCorrecto){
+	char* v_path = *path;
+	int esCorrecto = buscarTablaArchivos(v_path);
+	static int codigo = 0;
+	printf("Un nodo me quiere notificar sobre la subida del archivo %s\n", v_path );
+	if(esCorrecto!=-1){
+	  tablaArchivos[esCorrecto].disponible=1;
 	  codigo = 1;
-	  printf("El nodo subio el archivo %s.\n",*path);
-  }else{
+	  printf("El nodo me confirma que subio el archivo %s.\n",v_path);
+	}else{
 	  //elimino de la tabla de archivos a este archivo agregado, y de el archivo de consistencia ya que hubo un error
-	  if(eliminarDeTablaArchivos(*path)){
+	  //if(eliminarDeTablaArchivos(*path)){
 		  //que tire algun cartel de error
-	  }
-  }
-  
+		printf("No encuentro el archivo que se quiere confirmar como subido.\n");
+	}
+	
 
- 
-  //codigo = 1;
-  return &codigo;
+	listarTablaArchivos();
+
+	//codigo = 1;
+	return &codigo;
 }
 
 int * anunciarnodo_1_svc(char** direccion,struct svc_req *cliente){
