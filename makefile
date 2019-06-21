@@ -10,7 +10,7 @@ shell: shell.c Nodo_clnt.c Nodo.h Nodo_xdr.c Coordinador_clnt.c Coordinador.h fi
 nodo: nodo.c Nodo_svc.c Nodo.h Nodo_xdr.c Coordinador_clnt.c Coordinador.h filehandler.c
 	gcc -lnsl -o nodo nodo.c Coordinador_clnt.c Nodo_svc.c Coordinador.h Nodo.h Nodo_xdr.c filehandler.c
 
-coordinador: coordinador.c Coordinador_svc.c Coordinador.h operacionesTabla.c
+coordinador: coordinador.c Coordinador_svc.c Coordinador.h
 	gcc -lnsl -o coordinador coordinador.c Coordinador_svc.c Coordinador.h
 
 Nodo_clnt.c Nodo_svc.c Nodo_xdr.c Nodo.h: Nodo.x
