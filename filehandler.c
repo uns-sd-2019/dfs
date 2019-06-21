@@ -52,7 +52,7 @@ void read_file(char* path,file_info* fi){
   printf("Filehandler: Se leyeron %i bytes del archivo a subir\n", items_read);
   fclose(file);
 
-  printf("Filehandler: El contenido del buffer es:%s\n El cual tiene %li items\n", buffer, strlen(buffer));
+  //printf("Filehandler: El contenido del buffer es:%s\n El cual tiene %li items\n", buffer, strlen(buffer));
 
   fi->buffer=buffer;
 

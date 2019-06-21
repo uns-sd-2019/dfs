@@ -84,8 +84,9 @@ void menu(){
 				read_file(rutaLocal,fi);	//read_file toma el contenido del archivo en rutaLocal y lo carga en un buffer junto con tu tamaño
 				sendfile.data=fi->buffer;
 				sendfile.size=fi->buffer_length;
-				printf("Shell: El contenido del buffer a transmitir es: %s y su longitud %i\n", sendfile.data, sendfile.size);
-				
+				//printf("Shell: El contenido del buffer a transmitir es: %s y su longitud %i\n", sendfile.data, sendfile.size);
+				printf("Subiendo el archivo local %s cuya longitud es %i, y su nombre remoto sera %s\n", rutaLocal, sendfile.size, sendfile.name );
+
 				// Enviamos el archivo al nodo.
 				resultadoSubir=*subir_1(&sendfile, clntnodo);
 				if (&resultadoSubir == (int*) NULL) {
@@ -109,6 +110,12 @@ void menu(){
 
 				// Pedimos al coordinador la direccion al nodo correspondiente.
 				nodo = *rqbajar_1(&rutaDFS, clntcoor);
+
+				if(nodo == (char *) NULL)
+				{
+					printf("No se pudo encontrar el archivo %s en el DFS, intente nuevamente con otra ruta\n", rutaDFS );
+					break;
+				}
 				// Iniciamos la conexión con el nodo:
 				clntnodo = clnt_create(nodo, NODO, VERSION1, "TCP");
 				if(clntnodo == (CLIENT *) NULL) {
@@ -121,6 +128,7 @@ void menu(){
 				recivedFile = bajar_1(&rutaDFS, clntnodo);
 				if (recivedFile == (file_to_send *) NULL) {
 					// clnt_perror (clnt, "call failed"); // No se que es esta linea
+					
 				}
 
 				// Guardamos el archivo en el almacenamiento permanente.
@@ -132,7 +140,7 @@ void menu(){
 					fclose(newfile);
 					exit(0);
 				}
-				printf("Shell: El contenido del buffer es %s\n", buffer);
+				//printf("Shell: El contenido del buffer es %s\n", buffer);
 				int items_writen = fwrite(buffer, file_length, 1, newfile);
 				printf("Shell: Se escribieron %i bytes en el archivo %s\n", file_length*items_writen, rutaLocal);
 				fclose(newfile);

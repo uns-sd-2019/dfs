@@ -25,7 +25,7 @@ int * subir_1_svc(file_to_send * argp, struct svc_req *rqstp){
 		return &result;
 	}
 
-    printf("Nodo: El contenido del buffer es %s\n", buffer );       //Cuando funcione hay que eliminar esta linea
+    //printf("Nodo: El contenido del buffer es %s\n", buffer );       //Cuando funcione hay que eliminar esta linea
 	int items_writen = fwrite(buffer, file_length, 1 ,newfile);
 	printf("Nodo: Se escribieron %i bytes en el archivo %s\n", file_length*items_writen, filename);
 
@@ -60,7 +60,8 @@ file_to_send * bajar_1_svc(char ** argp, struct svc_req *rqstp){
 	read_file(*argp,fi);
 	result.size=fi->buffer_length;
 	result.data=fi->buffer;
-	printf("Nodo: El contenido del archivo a transferir es %s y su longitud es de %i bytes\n", result.data, result.size );
+	//printf("Nodo: El contenido del archivo a transferir es %s y su longitud es de %i bytes\n", result.data, result.size );
+	printf("Transferi el archivo %s\n", path );
 
 	return &result;
 }

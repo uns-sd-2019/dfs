@@ -50,7 +50,6 @@ int buscarTablaArchivos(char* archivo){
   for(i=0;i<cant_archivos && aparecio==0; i++) {
     if(strcmp(tablaArchivos[i].nombre,archivo)==0)	//STRCMP RETORNA 0 SI SON IGUALES D:
     {
-      printf("Encontre una coincidencia entre %s y %s\n", archivo, tablaArchivos[i].nombre );
       aparecio=1;
   	  posicion=i;
   	}
@@ -175,19 +174,27 @@ char ** rqsubir_1_svc(char ** path, struct svc_req *cliente){
   return (&resultadoFinal);
 }
 char ** rqbajar_1_svc(char ** path, struct svc_req *cliente){
-  printf("El cliente pidio por el archivo %s.\n",*path);
-  int ipLoc;
-  static char * resultadoFinal;
-  resultadoFinal = malloc(16);
-  //Buscar en la tabla si existe el archivo deseado, sino elegir un nuevo nodo;
-  if (ipLoc=buscarTablaArchivos(*path)){     //Si existe el archivo retorna la ip del nodo que lo contiene
-    strcpy(resultadoFinal,tablaArchivos[ipLoc].nombre);
-    return (&resultadoFinal);
-    // Retornar el ip de la tabla
-  } else {
-    // Retorna un error.
-  }
+
+	char* v_path = *path;
+	printf("El cliente pidio por el archivo %s.\n",v_path);
+	int ipLoc;
+	static char * resultadoFinal;
+	resultadoFinal = malloc(16);
+	//Buscar en la tabla si existe el archivo deseado, sino elegir un nuevo nodo;
+	ipLoc=buscarTablaArchivos(v_path);
+	int is_valid= tablaArchivos[ipLoc].disponible;
+	if ( ((ipLoc != -1) && is_valid) ){     	//Si existe el archivo y es valido retorna la ip del nodo que lo contiene
+	strcpy(resultadoFinal,tablaArchivos[ipLoc].ipNodo);		//Aca se copia la direccion del nodo que mantiene ese archivo
+	printf("El archivo %s lo tiene el nodo %s\n", v_path, resultadoFinal );
+	return (&resultadoFinal);
+	// Retornar el ip de la tabla
+	} else {
+		printf("No se encontro el archivo %s en  la tabla de archivos\n", v_path );
+		listarTablaArchivos();
+	// Retorna un error. NULL pointer?
+	}
 }
+
 char ** ls_1_svc(void * vacio, struct svc_req *cliente){
   // Retornar el arbol de directorios (falta crearlo).
   static char * resultadoFinal;
