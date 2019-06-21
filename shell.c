@@ -128,6 +128,8 @@ void menu(){
 				recivedFile = bajar_1(&rutaDFS, clntnodo);
 				if (recivedFile == (file_to_send *) NULL) {
 					// clnt_perror (clnt, "call failed"); // No se que es esta linea
+					printf("Error: no se recibio ningun archivo\n");
+					break;
 					
 				}
 
@@ -135,7 +137,7 @@ void menu(){
 				int file_length = recivedFile->size;
 				char* buffer = recivedFile->data;
 				FILE* newfile;
-				if (!(newfile= (FILE*) fopen(rutaDFS,"wb"))) {
+				if (!(newfile= (FILE*) fopen(rutaLocal,"wb"))) {
 					printf("Shell: Error al crear el nuevo archivo\n");
 					fclose(newfile);
 					exit(0);
