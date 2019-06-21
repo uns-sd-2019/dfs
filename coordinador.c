@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#define TABLA_SIZE 64
 #define MAX_NODOS 10
 
 // Tabla provisoria.
@@ -21,7 +20,7 @@ struct nodo{
 };
 
 //hay que crear este archivo.txt y dejarlo ahi agregado
-char * tablaArchivosFile = "tablaArchivos.txt";
+char * tablaArchivosFile = rutaTabla;
 
 struct nodo tablaNodos[MAX_NODOS];	//Tabla que mantendra la 
 int cant_nodos=0;
@@ -291,4 +290,186 @@ int* bajarnodo_1_svc(char** direccion,struct svc_req *cliente){
 	}
 
 	return &result;
+}
+
+
+
+
+
+// --------------------------------------------------
+// --------------------------------------------------
+// --------------------------------------------------
+// operacionesTabla.c:
+// --------------------------------------------------
+// --------------------------------------------------
+// --------------------------------------------------
+/*
+* 
+Esta tabla debe tener el siguiente formato:
+path1@bitValido1@IP1 
+path2@bitValido2@IP2 
+...
+
+asi tal cual (definir un archivo de nombre "file.txt" con la tabla adentro)
+*/
+
+//agregara una entrada a la tabla al final del archivo
+void optabla_agregar(char * filename, char * path, int bitValido, char * IP){	
+	FILE *file = fopen ( filename, "r+" );
+
+	//tengo que definir un buffer porque el strcat pide memoria "definida" no en el aire	
+	char buffer[256];
+	strncpy(buffer,path,256);
+	fseek(file,0,SEEK_END);
+	strcat(buffer,"@");
+	bitValido ? strcat(buffer,"1") : strcat(buffer,"0");
+	strcat(buffer,"@");
+	strcat(buffer,IP);
+	strcat(buffer,"\n");
+	fputs(buffer,file);
+	fflush(file);
+	fclose(file);
+	//fseek(archivo, desde que offset quiero reemplazar, desde que punto del archivo quiero reemplazar);
+}
+
+
+//modificara aquella linea de la tabla con el path, poniendo el nuevo path, nuevo bit, o IP
+int optabla_modificar(char * filename, char * path, char * newPath, int bitValido, char * IP){
+	
+	char delim[]="@";
+	FILE *file = fopen ( filename, "r+" );
+	FILE *tmp_file = fopen("temporary.txt","w");
+	if ( file != NULL ){
+		char line [ 128 ]; /* or other suitable maximum line size */
+		int encontre = 0;
+		while ( fgets ( line, sizeof line, file ) != NULL)/* read a line */
+		{
+			char aux[128];
+			strncpy(aux,line,128);		
+			
+			//aca hace algo que rompe la linea
+			char *ptr = strtok(line,delim); //me fijo solo con el path
+			
+			if(ptr != NULL){
+				if(strcmp(ptr,path) != 0 || encontre == 1){
+					fputs(aux,tmp_file);
+				}else{
+					char buffer[256];
+					strncpy(buffer,newPath,256);
+					strcat(buffer,"@");
+					bitValido ? strcat(buffer,"1") : strcat(buffer,"0");
+					strcat(buffer,"@");
+					strcat(buffer,IP);
+					strcat(buffer,"\n");
+					fputs(buffer,tmp_file);
+					encontre=1;
+				}
+				ptr = strtok(NULL,delim);	
+			}
+			
+			
+		}
+		fflush(file);
+		fclose(file);
+		fclose(tmp_file);
+		remove(filename);
+		rename("temporary.txt",filename);
+
+		if(encontre == 0){
+			return 1;
+		}
+	}else{
+		perror ( filename ); /* why didn't the file open? */
+	}
+	return 0; //exitoso
+}
+
+//eliminara aquella linea de la tabla que se corresponda con el path
+int optabla_suprimir(char * filename, char * path){
+	
+	char delim[]="@";
+	FILE *file = fopen ( filename, "r+" );
+	FILE *tmp_file = fopen("temporary.txt","w");
+	if ( file != NULL ){
+		char line [ 128 ]; /* or other suitable maximum line size */
+		int encontre = 0;
+		while ( fgets ( line, sizeof line, file ) != NULL)/* read a line */
+		{
+			char aux[128];
+			strncpy(aux,line,128);		
+			
+			//aca hace algo que rompe la linea
+			char *ptr = strtok(line,delim); //me fijo solo con el path
+			
+			if(ptr != NULL){
+				if(strcmp(ptr,path) != 0 || encontre == 1){
+					fputs(aux,tmp_file);
+				}else{
+					encontre = 1;
+				}
+				ptr = strtok(NULL,delim);	
+			}
+			
+			
+		}
+		fflush(file);
+		fclose(file);
+		fclose(tmp_file);
+		remove(filename);
+		rename("temporary.txt",filename);
+
+		if(encontre == 0){
+			return 1;
+		}
+	}else{
+		perror ( filename ); /* why didn't the file open? */
+	}
+	return 0; //exitoso
+}
+
+//Leera el contenido del archivo que tiene la tabla
+int optabla_leer(char * filename){
+	printf("Chequeo archivo txt por si hay algo escrito:\n");
+	char delim[]="@";
+	FILE *file = fopen ( filename, "r" );	
+	if ( file != NULL ){
+		char line [ 128 ]; /* or other suitable maximum line size */
+		while ( fgets ( line, sizeof line, file ) != NULL ) /* read a line */
+		{
+			//fputs ( line, stdout ); /* write the line */
+			char *ptr = strtok(line,delim);
+			int i = 0;
+			struct celda *nueva_celda = malloc(sizeof(struct celda)); // Donde se va a insertar los datos que leo.
+			while(ptr != NULL){
+				if(i == 0){
+					//ptr es nombreArchivo
+					i++;
+					strcpy(nueva_celda->nombre,ptr); // insert
+				}else{
+					if(i == 1){
+						//ptr es bitValido
+						i++;
+						nueva_celda->disponible = atoi(ptr); // insert
+					}else{
+						//ptr es IP
+						i=0;
+						strcpy(nueva_celda->ipNodo,ptr); // insert
+					}
+					
+				}
+				ptr = strtok(NULL,delim);				
+			}			
+			//Inserts en el array de los datos conseguidos.
+			//NO insertar en el txt porq ya están ahi.	
+			tablaArchivos[cant_archivos]=*nueva_celda; // Add al array
+			cant_archivos++;
+		}
+		fflush(file);
+		fclose ( file );
+		
+	}else{
+		perror ( filename ); 
+	}
+	listarTablaArchivos(); // << Debug, se podria borrar.
+	return 0;
 }
