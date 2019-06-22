@@ -240,7 +240,7 @@ int * anunciarnodo_1_svc(char** direccion,struct svc_req *cliente){
 
 	printf("Analizando si el nodo ya se encuentra registrado...\n");
 
-	if(!buscarTablaNodos( *direccion ))
+	if(buscarTablaNodos( *direccion )==-1)
 	{
 		printf("El nodo %s no se encuentra registrado, agregando a la tabla de nodos activos\n", *direccion );
 		struct nodo *nuevo_nodo = malloc(sizeof(struct nodo));
@@ -248,8 +248,8 @@ int * anunciarnodo_1_svc(char** direccion,struct svc_req *cliente){
 		strcpy(nuevo_nodo->direccion,*direccion);
 		nuevo_nodo->carga=0;
 		tablaNodos[cant_nodos]=*nuevo_nodo;
-		result=cant_nodos;
 		cant_nodos++;
+		result=cant_nodos;
 		printf("Se agrego con exito el nodo a la tabla de nodos activos\n" );	
 
 	}

@@ -6,12 +6,18 @@
 #include "filehandler.h"
 
 CLIENT *clntcoor;   // Se usara para comunicarse con el coordinador.
-char *coordinador="localhost";	// IP del servidor coordinador, hardcodeado localhost por ahora
+char *coordinadorDir;
+
+
+void updateCoordinadorDir(char *dirCord)
+{
+	coordinadorDir = malloc(32);
+	strcpy(coordinadorDir,dirCord);
+}
 
 
 int * subir_1_svc(file_to_send * argp, struct svc_req *rqstp){
   static int  result;
-
   int file_length = argp->size;
   char* buffer = argp->data;
   char* filename = argp->name;
@@ -33,7 +39,7 @@ int * subir_1_svc(file_to_send * argp, struct svc_req *rqstp){
 
 	printf("Nodo: Notificando al coordinador la subida del archivo...\n");
 
-	clntcoor = clnt_create(coordinador, COORDINADOR, VERSION1, "TCP");
+	clntcoor = clnt_create(coordinadorDir, COORDINADOR, VERSION1, "TCP");
 	if(clntcoor == (CLIENT *) NULL) {
 	  printf("ERROR: Fallo la conexion con el coordinador.\n");
 	  exit(1);
@@ -47,6 +53,8 @@ int * subir_1_svc(file_to_send * argp, struct svc_req *rqstp){
 		printf("No se pudo notificar al coordinador la subida del archivo %s\n", filename );
 
 	result= 0;
+
+	clnt_destroy(clntcoor);
 
 	return &result;
 
