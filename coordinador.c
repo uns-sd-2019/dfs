@@ -247,16 +247,16 @@ int * anunciarnodo_1_svc(char** direccion,struct svc_req *cliente){
 		
 		strcpy(nuevo_nodo->direccion,*direccion);
 		nuevo_nodo->carga=0;
-		tablaNodos[cant_nodos]=*nuevo_nodo;
-		cant_nodos++;
+		tablaNodos[cant_nodos]=*nuevo_nodo;		
 		result=cant_nodos;
+		cant_nodos++;
 		printf("Se agrego con exito el nodo a la tabla de nodos activos\n" );	
 
 	}
 	else
 	{
 		printf("El nodo %s ya se encuentra registrado como activo\n", *direccion );
-		result=0;
+		result=-1;
 	}
 
 	return &result;

@@ -80,7 +80,7 @@ void notificarAlCoord(char *dirNodo, char *dirCoord)
 	}
 	int notificarCoord = *anunciarnodo_1(&dirNodo,clntcoor);
 
-	if(notificarCoord==0)
+	if(notificarCoord==-1)
 	{
 		printf("Error: coordinador no puede registrar el nodo.\n");
 		printf("Puede ya estár registrado, o IP incorrecta.\n");
