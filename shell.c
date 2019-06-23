@@ -113,10 +113,6 @@ void menu(){
 							break;
 						
 					}
-					if (resultadoSubir == 0)
-						printf("Shell: subida de archivo exitosa\n");
-				    else
-				    	printf("Shell: ocurrio un error por parte del servidor\n");
 				}
 				
 				break;
