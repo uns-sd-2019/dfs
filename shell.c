@@ -92,6 +92,27 @@ void menu(){
 				if (&resultadoSubir == (int*) NULL) {
 					//clnt_perror (clnt, "call failed"); // No se que es esta linea
 				} else {
+					switch(resultadoSubir){
+						case 0:
+							printf("Shell: subida de archivo exitosa\n");
+							break;
+						case 1:
+							printf("Error al subir archivo:: null path\n");
+							break;
+						case 2:
+							printf("Error al subir archivo: Nombre de archivo invalido. Máximo una carpeta\n");
+							break;
+						case 3:
+							printf("Error al subir archivo: El nombre de la carpeta pertence a un archivo\n");
+							break;
+						case 4:
+							printf("Error al subir archivo: El nombre del archivo pertenece a una carpeta\n");
+							break;
+						case 5:
+							printf("Ocurrio un error inesperado al subir el archivo\n");
+							break;
+						
+					}
 					if (resultadoSubir == 0)
 						printf("Shell: subida de archivo exitosa\n");
 				    else
