@@ -160,7 +160,7 @@ void menu(){
 		}
 
 		if (stop != 1) {
-			printf("\n\nPresione cualquier tecla para continuar...");
+			printf("\n\nPresione enter para continuar...");
 			scanf("%c", (char*) &menuoption); // | hack para esperar un enter para continuar
 			getchar();						  // |
 			clear_screen();

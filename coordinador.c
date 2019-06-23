@@ -144,35 +144,41 @@ char* obtenerNodoMenosUsado(){
 }
 
 char ** rqsubir_1_svc(char ** path, struct svc_req *cliente){
-  printf("El cliente pidio subir el archivo %s.\n",*path);
-  //Buscar en la tabla si existe el archivo deseado, sino elegir un nuevo nodo;
-  int ipLoc;
-  static char * resultadoFinal;
-  char* v_path=*path;
-  listarTablaArchivos();
-  resultadoFinal = malloc(16);
-
-  
-  if ( (ipLoc=buscarTablaArchivos(v_path) !=-1 ) ){     //Si existe el archivo
-    // Informar al nodo anterior que actualice el archivo y marcar al archivo como no disponible, en la tabla y en el archivo de consistencia.
-    printf("Ya existe el archivo %s\n",v_path);
-	tablaArchivos[ipLoc].disponible = 0;
-	//optabla_modificar(tablaArchivosFile,tablaArchivos[ipLoc].nombre,tablaArchivos[ipLoc].nombre,tablaArchivos[ipLoc].disponible,tablaArchivos[ipLoc].ipNodo);
-    // Retornar el ip de la tabla
-    strcpy(resultadoFinal,tablaArchivos[ipLoc].ipNodo);
-  } else {
-    // Elegir un nuevo ip (el menos usado) y enviarlo al cliente
-    //strcpy(resultadoFinal,obtenerNodoMenosUsado());
-	printf("Todavia no existe el archivo %s\n", v_path );
-    resultadoFinal = "localhost";      // IP para probar. HAY QUE BORRAR ESTA LINEA LUEGO
+	static char * resultadoFinal;
 	
-	//agrego en las tablas del coordinador el nuevo archivo, deberé modificar el bit de válido y ponerlo en 1 una vez subido HACER LUEGO
-	agregarEnTablaArchivos(v_path,0,resultadoFinal);
-  }
-  listarTablaArchivos();
-  return (&resultadoFinal);
+	printf("═══════════════════════════ rqsubir ═══════════════════════════\n");
+	
+	printf("El cliente pidio subir el archivo %s.\n", *path);
+	//Buscar en la tabla si existe el archivo deseado, sino elegir un nuevo nodo;
+	int ipLoc;	
+	listarTablaArchivos();
+	resultadoFinal = malloc(16);
+
+
+	if (ipLoc=buscarTablaArchivos(*path) !=-1 ) {
+		printf("Ya existe el archivo %s, se sube nueva version y se renombra anterior\n", *path);
+		//TODO Aca va el IP del nodo que ya tenia el archivo.
+		
+		resultadoFinal = "localhost"; 
+	} else {
+		// Elegir un nuevo ip (el menos usado) y enviarlo al cliente
+		//strcpy(resultadoFinal,obtenerNodoMenosUsado());
+		printf("Todavia no existe el archivo %s\n", *path);
+		
+		resultadoFinal = "localhost";      // IP para probar
+		
+		//agrego en las tablas del coordinador el nuevo archivo, deberé modificar el bit de válido y ponerlo en 1 una vez subido HACER LUEGO
+		agregarEnTablaArchivos(*path, 0, resultadoFinal);
+	}		
+
+	listarTablaArchivos();
+	
+	return (&resultadoFinal);
 }
+
 char ** rqbajar_1_svc(char ** path, struct svc_req *cliente){
+	
+	printf("═══════════════════════════ rqbajar ═══════════════════════════\n");
 
 	char* v_path = *path;
 	printf("El cliente pidio por el archivo %s.\n",v_path);
@@ -204,37 +210,64 @@ char ** ls_1_svc(void * vacio, struct svc_req *cliente){
 
 
 //HACER FIX AQUI, TERMINAR
-int * subirack_1_svc(char ** path, struct svc_req *cliente){
-  // Agregar a la tabla el archivo que aclara el path. NO ME CONVIENE HACER ESTO ACA PORQUE NO TENGO EL NODO Y NO SE CUAL FUE
-  //EL MENOS USADO QUE SE ELIGIÓ, ME CONVIENE AGREGAR ANTES A LA TABLA EL ARCHIVO y si falla en algun lado, notificar y aquí eliminar esta entrada
-  //agregada
-  
-  //VER COMO HACER PARA VERIFICAR SI FUE CORRECTO O NO, CUANDO TENGO UNA VARIABLE QUE ME INDICA SI ES CORRECTO, ENTONCES:
-	char* v_path = *path;
-	int esCorrecto = buscarTablaArchivos(v_path);
+int * subirack_1_svc(char ** path, struct svc_req *cliente) {	
 	static int codigo = 0;
-	printf("Un nodo me quiere notificar sobre la subida del archivo %s\n", v_path );
-	if(esCorrecto!=-1){
-	  tablaArchivos[esCorrecto].disponible=1;
-	  codigo = 1;
-	  printf("El nodo me confirma que subio el archivo %s.\n",v_path);
-	}else{
-	  //elimino de la tabla de archivos a este archivo agregado, y de el archivo de consistencia ya que hubo un error
-	  //if(eliminarDeTablaArchivos(*path)){
-		  //que tire algun cartel de error
-		printf("No encuentro el archivo que se quiere confirmar como subido.\n");
+	
+	printf("═══════════════════════════ subirack ═══════════════════════════\n");
+		
+	char *needle = "#ver";
+	char *ptr = strstr(*path, needle);
+	if (ptr != NULL) 
+	{	
+		char *delim = "#";
+		char *pathAux = malloc(sizeof(char) * strlen(*path) + 1);
+		strcpy(pathAux, *path);
+		// Se modifica el primer arg
+		char *token = strtok(pathAux, delim);
+		printf("Nueva version de %s disponible\n", token);
+		
+		// TODO: cambiar una vez que se pueda obtener IP segun path.
+		char *dirIP = "localhost";
+		agregarEnTablaArchivos(*path, 1, dirIP);
+		
+		
+		free(pathAux);
+		codigo = 1;
+	} 
+	else 
+	{
+		printf("Un nodo me quiere notificar sobre la subida del archivo %s\n", *path );
+		
+		// Agregar a la tabla el archivo que aclara el path. NO ME CONVIENE HACER ESTO ACA PORQUE NO TENGO EL NODO Y NO SE CUAL FUE
+		//EL MENOS USADO QUE SE ELIGIÓ, ME CONVIENE AGREGAR ANTES A LA TABLA EL ARCHIVO y si falla en algun lado, notificar y aquí eliminar esta entrada
+		//agregada
+
+		//VER COMO HACER PARA VERIFICAR SI FUE CORRECTO O NO, CUANDO TENGO UNA VARIABLE QUE ME INDICA SI ES CORRECTO, ENTONCES:
+		int esCorrecto = buscarTablaArchivos(*path);				
+		if(esCorrecto!=-1){
+		  tablaArchivos[esCorrecto].disponible=1;
+		  codigo = 1;		  
+		}else{
+		  //elimino de la tabla de archivos a este archivo agregado, y de el archivo de consistencia ya que hubo un error
+		  //if(eliminarDeTablaArchivos(*path)){
+			  //que tire algun cartel de error
+			printf("No encuentro el archivo que se quiere confirmar como subido.\n");
+		}		
 	}
 	
-
-	listarTablaArchivos();
-
-	//codigo = 1;
+	if (codigo ==1 ) {
+		printf("El nodo me confirma que subio el archivo %s.\n",*path);
+		listarTablaArchivos();
+	}
+	
 	return &codigo;
 }
 
 int * anunciarnodo_1_svc(char** direccion,struct svc_req *cliente){
 	//Funcion invocada por el nodo al iniciar su ejecucion, para anunciar su direccion IP
 	static int result;
+	
+	printf("═══════════════════════════ anunciarnodo ═══════════════════════════\n");
 
 	printf("Se anuncia la llegada del nodo con ip: %s\n", *direccion );
 
@@ -268,6 +301,8 @@ int * anunciarnodo_1_svc(char** direccion,struct svc_req *cliente){
 int* bajarnodo_1_svc(char** direccion,struct svc_req *cliente){
 	//Funcion invocada por el nodo antes de terminar su ejecucion, para bajar su ip de la lista de nodos activos
 	static int result;
+	
+	printf("═══════════════════════════ bajarnodo ═══════════════════════════\n");
 
 	printf("El nodo %s quiere bajarse de la lista de nodos activos\n", *direccion );
 

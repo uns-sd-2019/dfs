@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "filehandler.h"
+#include "versionado.h"
 
 CLIENT *clntcoor;   // Se usara para comunicarse con el coordinador.
 char *coordinadorDir;
@@ -17,14 +18,26 @@ void updateCoordinadorDir(char *dirCord)
 
 
 int * subir_1_svc(file_to_send * argp, struct svc_req *rqstp){
-  static int  result;
-  int file_length = argp->size;
-  char* buffer = argp->data;
-  char* filename = argp->name;
-  FILE* newfile;
+	static int  result;
+	int file_length = argp->size;
+	char* buffer = argp->data;
+	char* filename = argp->name;
+	FILE* newfile;
+	
+	// Versionado. 
+	char *newName = malloc(sizeof(char) * MAX_PATH_LENGTH);
+	
+	strcpy(newName, versionar( argp->name ));		
+	
+	if (strcmp(newName, argp->name) != 0) {
+		printf("\n");
+		printf("Nuevo control de versiones:\n");
+		printArchivoVers();
+		printf("\n");
+	}
+	// ---	
 
-  if (!(newfile= (FILE*) fopen(filename,"wb")) )
-  	{
+	if (!(newfile= (FILE*) fopen(filename,"wb")) ) {
 		printf("Nodo: Error al crear el nuevo archivo\n");
 
 		result= 1;
@@ -45,7 +58,7 @@ int * subir_1_svc(file_to_send * argp, struct svc_req *rqstp){
 	  exit(1);
 	}
 
-	int ack = *subirack_1(&filename,clntcoor);
+	int ack = *subirack_1(&newName,clntcoor);
 
 	if(ack)
 		printf("Notifique con exito al coordinador la subida del archivo %s\n", filename );
@@ -55,12 +68,13 @@ int * subir_1_svc(file_to_send * argp, struct svc_req *rqstp){
 	result= 0;
 
 	clnt_destroy(clntcoor);
+	free(newName);
 
 	return &result;
 
 }
 file_to_send * bajar_1_svc(char ** argp, struct svc_req *rqstp){
-  static file_to_send result;
+	static file_to_send result;
 	char* path = *argp;
 
 	file_info* fi = malloc(sizeof(file_info));

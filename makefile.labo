@@ -7,8 +7,8 @@ clean :
 shell: shell.c Nodo_clnt.c Nodo.h Nodo_xdr.c Coordinador_clnt.c Coordinador.h filehandler.c
 	gcc -ltirpc -I/usr/include/tirpc -o shell shell.c Coordinador_clnt.c Nodo_clnt.c Coordinador.h Nodo.h Nodo_xdr.c filehandler.c
 
-nodo: nodo.c Nodo_svc.c Nodo.h Nodo_xdr.c Coordinador_clnt.c Coordinador.h filehandler.c
-	gcc -ltirpc -I/usr/include/tirpc -o nodo nodo.c Coordinador_clnt.c Nodo_svc.c Coordinador.h Nodo.h Nodo_xdr.c filehandler.c
+nodo: nodo.c Nodo_svc.c Nodo.h Nodo_xdr.c Coordinador_clnt.c Coordinador.h filehandler.c versionado.c
+	gcc -ltirpc -I/usr/include/tirpc -o nodo nodo.c Coordinador_clnt.c Nodo_svc.c Coordinador.h Nodo.h Nodo_xdr.c filehandler.c versionado.c
 
 coordinador: coordinador.c Coordinador_svc.c Coordinador.h
 	gcc -ltirpc -I/usr/include/tirpc -o coordinador coordinador.c Coordinador_svc.c Coordinador.h
