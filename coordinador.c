@@ -189,17 +189,20 @@ char ** rqsubir_1_svc(char ** path, struct svc_req *cliente){
 
 	printf("El cliente pidio subir el archivo %s.\n", *path);
 
+	resultadoFinal = malloc(120);
+
+	char* tmp = "ERROR: No se pueden modificar archivos versionados.\n";
+
 	// Chequeamos que no sea un archivo versionado (son solo lectura)
 	if (strstr(*path, "#ver") != NULL) {
 		printf("ERROR: El usuario intento modificar un archivo versionado.\n");
-		strcpy(resultadoFinal, "ERROR: No se pueden modificar archivos versionados.");
+		strcpy(resultadoFinal, tmp);
 		return (&resultadoFinal);
 	}
 
 	//Buscar en la tabla si existe el archivo deseado, sino elegir un nuevo nodo;
 	int ipLoc;
 	listarTablaArchivos();
-	resultadoFinal = malloc(16);
 	char* v_path = *path;
 
 
