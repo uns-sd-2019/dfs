@@ -38,6 +38,38 @@ void listarTablaArchivos()
 	}
 }
 
+void recuperarNodos(){
+	FILE *fd = fopen("./ArchivoNodos.txt","rb");
+	char line[32];
+	int cant;
+	printf("════════════════════════ recuperacion nodos ════════════════════════\n");
+	if (fd != NULL){
+		while (fgets(line, sizeof(line), fd)) {
+			struct nodo *nuevo_nodo = malloc(sizeof(struct nodo));
+
+			line[strlen(line)-1] = '\0';	// Remueve el '\n'
+			strcpy(nuevo_nodo->direccion,line);
+
+			// Recalculo carga.
+			cant = 0;
+			for (int i = 0; i < cant_archivos; i++)
+				if (strcmp(nuevo_nodo->direccion,tablaArchivos[i].ipNodo) == 0)
+					cant++;
+
+			nuevo_nodo->carga = cant;
+			tablaNodos[cant_nodos]=*nuevo_nodo;
+			cant_nodos++;
+		}
+
+		printf("Tabla de nodos recuperada:\n");
+		for (int i = 0; i < cant_nodos; i++)
+			printf("\tNodo: %s, Carga: %i\n", tablaNodos[i].direccion, tablaNodos[i].carga);
+	}
+	else {
+		printf("No hay nodos para recuperar.\n");
+	}
+}
+
 //FIX: OJO CON ESTA FUNCIÓN, SI EL ARCHIVO ESTA EN LA POSICIÓN 0 DE LA TABLA, ENTONCES SERÍA CONSIDERADO ERROR
 //ARREGLAR
 //FIX PROPUESTO: GUARDAR EN LA VARIABLE POSICION LA MISMA SI ES QUE APARECE Y RETORNARLA, SINO RETORNAR -1

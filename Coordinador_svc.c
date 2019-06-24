@@ -120,6 +120,7 @@ main (int argc, char **argv)
 	}
 	// Si se configuró correctamente, llamo al metodo para inicializar la tabla del coord.
 	optabla_leer(rutaTabla); // << operacionesTabla.h
+	recuperarNodos();	// << operacionesTabla.h
 	svc_run ();
 	fprintf (stderr, "%s", "svc_run returned");	
 	exit (1);

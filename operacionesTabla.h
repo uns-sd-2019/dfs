@@ -14,4 +14,11 @@ int optabla_suprimir(char * filename, char * path);
 
 int optabla_leer(char * filename);
 
+/**
+*	Intenta recuperar las tablas de nodos de memoria estable luego de una caida
+*	del coordinador.
+*	(lo pongo aca para no generar otro .h)
+*/
+void recuperarNodos();
+
 #endif
