@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <dirent.h>
 
 #define MAX_NODOS 10
 
@@ -242,13 +243,49 @@ char ** rqbajar_1_svc(char ** path, struct svc_req *cliente){
 	// Retorna un error. NULL pointer?
 	}
 }
+ // Pone en listado un string que representa el ls del dir actual. 
+void listdir(const char *name, int indent, char *listado)
+{       
+    DIR *dir;
+    struct dirent *entry;
+    
+    char *string = (char*) malloc(1024);
+    string[0] = '\0';
+
+    if (!(dir = opendir(name)))
+        return;
+
+    while ((entry = readdir(dir)) != NULL) {
+        if (entry->d_type == DT_DIR) {
+            char path[1024];
+            if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
+                continue;
+            snprintf(path, sizeof(path), "%s/%s", name, entry->d_name);
+            sprintf(string, "%*s[%s]\n", indent, "", entry->d_name);
+            // printf("%*s[%s]\n", indent, "", entry->d_name);
+            strcat(listado, string);
+            listdir(path, indent + 2, listado);
+        } else {
+            sprintf(string, "%*s- %s\n", indent, "", entry->d_name);
+            // printf("%*s- %s\n", indent, "", entry->d_name);
+            strcat(listado, string);
+        }
+    }
+    closedir(dir); 
+    free(string);          
+}
 
 char ** ls_1_svc(void * vacio, struct svc_req *cliente){
-  // Retornar el arbol de directorios (falta crearlo).
-  static char * resultadoFinal;
-  resultadoFinal = malloc(16);
-  resultadoFinal = "/home/sd";      // Ruta para probar.
-  return (&resultadoFinal);
+	static char *result;
+	
+	result = (char*) malloc(1024);
+	result[0] = '\0';
+
+	listdir("rootDFS", 0, result);
+	
+	printf("\n%s\n", result);
+
+	return &result;
 }
 
 
