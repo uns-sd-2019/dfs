@@ -136,9 +136,10 @@ void menu(char *coord){
 					} else {
 						printResultado(resultadoSubir);
 					}
+					clnt_destroy (clntnodo);	
 				}
 				clnt_destroy (clntcoor);
-				clnt_destroy (clntnodo);
+				
 				break;
 
 			case 3: ////////////////////////////////////////// bajar(file)
