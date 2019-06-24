@@ -110,26 +110,32 @@ void menu(char *coord){
 				// Pedimos al coordinador la direccion al nodo correspondiente.
 				conectarCoord(coord);
 				nodo = *rqsubir_1(&rutaDFS,clntcoor);
-				printf("Recibi la direccion %s\n", nodo );
-				// Iniciamos la conexión con el nodo
-				conectarNodo(nodo);
-				// Armamos el struct para pasar como parametro.
-				int resultadoSubir;
-				file_to_send sendfile;
-				strcpy(sendfile.name, rutaDFS);
-				file_info* fi = malloc(sizeof(file_info));
-				read_file(rutaLocal,fi);	//read_file toma el contenido del archivo en rutaLocal y lo carga en un buffer junto con tu tamaño
-				sendfile.data=fi->buffer;
-				sendfile.size=fi->buffer_length;
-				//printf("Shell: El contenido del buffer a transmitir es: %s y su longitud %i\n", sendfile.data, sendfile.size);
-				printf("Subiendo el archivo local %s cuya longitud es %i, y su nombre remoto sera %s\n", rutaLocal, sendfile.size, sendfile.name );
-
-				// Enviamos el archivo al nodo.
-				resultadoSubir=*subir_1(&sendfile, clntnodo);
-				if (&resultadoSubir == (int*) NULL) {
-					//clnt_perror (clnt, "call failed"); // No se que es esta linea
+				
+				// Si el coordinador responde con ERROR es porque se intento subir un archivo versionado
+				if (strstr(nodo, "ERROR")){
+					printf("%s\n", nodo );
 				} else {
-					printResultado(resultadoSubir);
+					printf("Recibi la direccion %s\n", nodo );
+					// Iniciamos la conexión con el nodo
+					conectarNodo(nodo);
+					// Armamos el struct para pasar como parametro.
+					int resultadoSubir;
+					file_to_send sendfile;
+					strcpy(sendfile.name, rutaDFS);
+					file_info* fi = malloc(sizeof(file_info));
+					read_file(rutaLocal,fi);	//read_file toma el contenido del archivo en rutaLocal y lo carga en un buffer junto con tu tamaño
+					sendfile.data=fi->buffer;
+					sendfile.size=fi->buffer_length;
+					//printf("Shell: El contenido del buffer a transmitir es: %s y su longitud %i\n", sendfile.data, sendfile.size);
+					printf("Subiendo el archivo local %s cuya longitud es %i, y su nombre remoto sera %s\n", rutaLocal, sendfile.size, sendfile.name );
+
+					// Enviamos el archivo al nodo.
+					resultadoSubir=*subir_1(&sendfile, clntnodo);
+					if (&resultadoSubir == (int*) NULL) {
+						//clnt_perror (clnt, "call failed"); // No se que es esta linea
+					} else {
+						printResultado(resultadoSubir);
+					}
 				}
 				clnt_destroy (clntcoor);
 				clnt_destroy (clntnodo);
