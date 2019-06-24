@@ -39,8 +39,26 @@ void printResultado(int resultado) {
 	}
 }
 
+void conectarCoord(char *coord)
+{
+	clntcoor = clnt_create(coord, COORDINADOR, VERSION1, "TCP");
+	if(clntcoor == (CLIENT *) NULL) {
+	  printf("ERROR: Fallo la conexion con el coordinador.\n");
+	  exit(1);
+	}
+}
+
+void conectarNodo(char *nodo)
+{
+	clntnodo = clnt_create(nodo, NODO, VERSION1, "TCP");
+	if(clntnodo == (CLIENT *) NULL) {
+	  printf("ERROR: Fallo la conexion con el nodo.\n");
+	  exit(1);
+	}
+}
+
 // MiniShell Interactiva
-void menu(){
+void menu(char *coord){
 	clear_screen();
 
 	int menuoption;
@@ -68,11 +86,12 @@ void menu(){
 
 		switch (menuoption) {
 			case 1: ////////////////////////////////////////// ls()
-				
+				conectarCoord(coord);
 				arbolDFS = *( ls_1((void*)&vacio,clntcoor) );
 				//arbolDFS = "├ Directorio1\n│\t├ Archivo1\n│\t└ Archivo2\n└ Archivo3"; // para testing de formato
 				printf ("El arbol de directorios es:\n\n");
-				printf("%s\n", arbolDFS);
+				printf("%s\n", arbolDFS);	
+				clnt_destroy (clntcoor);
 				break;
 
 			case 2: ////////////////////////////////////////// subir(path,file)
@@ -92,14 +111,11 @@ void menu(){
 				scanf("%s", rutaDFS);
 
 				// Pedimos al coordinador la direccion al nodo correspondiente.
+				conectarCoord(coord);
 				nodo = *rqsubir_1(&rutaDFS,clntcoor);
 				printf("Recibi la direccion %s\n", nodo );
 				// Iniciamos la conexión con el nodo
-				clntnodo = clnt_create(nodo, NODO, VERSION1, "TCP");
-				if(clntnodo == (CLIENT *) NULL) {
-				  printf("ERROR: Fallo la conexion con el nodo.\n");
-				  break;
-				}
+				conectarNodo(nodo);
 				// Armamos el struct para pasar como parametro.
 				int resultadoSubir;
 				file_to_send sendfile;
@@ -117,8 +133,9 @@ void menu(){
 					//clnt_perror (clnt, "call failed"); // No se que es esta linea
 				} else {
 					printResultado(resultadoSubir);
-				}
-				
+				}					
+				clnt_destroy (clntcoor);
+				clnt_destroy (clntnodo);
 				break;
 				
 			case 3: ////////////////////////////////////////// bajar(file)
@@ -130,6 +147,7 @@ void menu(){
 				scanf("%s",rutaLocal);
 
 				// Pedimos al coordinador la direccion al nodo correspondiente.
+				conectarCoord(coord);
 				nodo = *rqbajar_1(&rutaDFS, clntcoor);
 
 				if(nodo == (char *) NULL)
@@ -138,12 +156,7 @@ void menu(){
 					break;
 				}
 				// Iniciamos la conexión con el nodo:
-				clntnodo = clnt_create(nodo, NODO, VERSION1, "TCP");
-				if(clntnodo == (CLIENT *) NULL) {
-				  printf("ERROR: Fallo la conexion con el nodo.\n");
-				  exit(1);
-				}
-
+				conectarNodo(nodo);
 				file_to_send *recivedFile; // Creamos la estructura para recibir al archivo.
 				// Recibimos el archivo al nodo:
 				recivedFile = bajar_1(&rutaDFS, clntnodo);
@@ -170,7 +183,8 @@ void menu(){
 				} else {
 					printf("Error: comprobar la validez de la ruta en el DFS.\n");
 				}				
-
+				clnt_destroy (clntcoor);
+				clnt_destroy (clntnodo);
 				break;
 
 			case 0: // Salir
@@ -199,20 +213,8 @@ int main(int argc, char *argv[]) {
 	if (argc != 2) {
 	  printf ("ERROR: Cantidad de parametros invalida. Falta IP del coordinador?\n");
 	  exit(1);
-	}
-
-	coordinador = argv[1]; // Capturar ip del servidor coordinador.
-	
-	// Conectarse con el servidor coordinador
-	
-	clntcoor = clnt_create(coordinador, COORDINADOR, VERSION1, "TCP");
-	if(clntcoor == (CLIENT *) NULL) {
-	  printf("ERROR: Fallo la conexion con el coordinador.\n");
-	  exit(1);
-	}
-	
-	
-	menu();
+	}	
+	menu(argv[1]);
 }
 
 
