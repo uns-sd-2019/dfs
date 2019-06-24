@@ -523,7 +523,7 @@ int optabla_leer(char * filename){
 					}else{
 						//ptr es IP
 						i=0;
-						strcpy(nueva_celda->ipNodo,ptr); // insert
+						strncpy(nueva_celda->ipNodo,ptr,strlen(ptr)-1);// insert
 					}
 					
 				}
