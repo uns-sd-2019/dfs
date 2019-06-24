@@ -89,7 +89,6 @@ int * subir_1_svc(file_to_send * argp, struct svc_req *rqstp){
 	
 	printSeparador("subir");
 	
-	// Validacion del path
 	result = validarPath(filename);
 
 	if(result == 0){ // path valido
@@ -144,19 +143,33 @@ int * subir_1_svc(file_to_send * argp, struct svc_req *rqstp){
 	return &result;
 }
 
+/**
+ * Retorna un archivo con size -1 en caso de error. 
+ * */
 file_to_send * bajar_1_svc(char ** argp, struct svc_req *rqstp){
 	static file_to_send result;
 	char* path = *argp;
 	
 	printSeparador("bajar");
+	
+	int validacion = validarPath(path);
+	
+	if ( validacion == 0) {
+		printf("Se enviara el archivo %s\n", *argp );
 
-	file_info* fi = malloc(sizeof(file_info));
-	strcpy(result.name,*argp);
-	read_file(*argp,fi);
-	result.size=fi->buffer_length;
-	result.data=fi->buffer;
-	//printf("Nodo: El contenido del archivo a transferir es %s y su longitud es de %i bytes\n", result.data, result.size );
-	printf("Transferi el archivo %s\n", path );
+		file_info* fi = malloc(sizeof(file_info));
+		strcpy(result.name,*argp);
+		
+		read_file(*argp,fi);
+		result.size=fi->buffer_length;
+		result.data=fi->buffer;
+		//printf("Nodo: El contenido del archivo a transferir es %s y su longitud es de %i bytes\n", result.data, result.size );
+		printf("Transferi el archivo %s\n", path );
+	} else {
+		printf("Error en el path %s, codigo %i. Ver errores en validarPath.\n", *argp, validacion );
+		
+		result.size = -1;
+	}	
 
 	return &result;
 }

@@ -148,6 +148,11 @@ char ** rqsubir_1_svc(char ** path, struct svc_req *cliente){
 	
 	printf("═══════════════════════════ rqsubir ═══════════════════════════\n");
 	
+	// Si el caracter inicial es '/' se elimina. Rutas relativas en dfs. 
+    if ((*path)[0] == '/') {
+		strcpy(*path, &((*path)[1]));
+	}    
+	
 	printf("El cliente pidio subir el archivo %s.\n", *path);
 	//Buscar en la tabla si existe el archivo deseado, sino elegir un nuevo nodo;
 	int ipLoc;	
@@ -179,7 +184,12 @@ char ** rqsubir_1_svc(char ** path, struct svc_req *cliente){
 char ** rqbajar_1_svc(char ** path, struct svc_req *cliente){
 	
 	printf("═══════════════════════════ rqbajar ═══════════════════════════\n");
-
+	
+	// Si el caracter inicial es '/' se elimina. Rutas relativas en dfs. 
+    if ((*path)[0] == '/') {
+		strcpy(*path, &((*path)[1]));
+	} 
+	
 	char* v_path = *path;
 	printf("El cliente pidio por el archivo %s.\n",v_path);
 	int ipLoc;

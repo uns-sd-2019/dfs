@@ -15,6 +15,30 @@ CLIENT *clntnodo;   // Se usara para comunicarse con el nodo a relacionarse.
 char *coordinador;	// IP del servidor Coordinador
 char *nodo;         // IP del nodo con el que relacionarse.
 
+void printResultado(int resultado) {
+	switch(resultado){
+		case 0:
+			printf("Shell: Operacion exitosa\n");
+			break;
+		case 1:
+			printf("Error: null path\n");
+			break;
+		case 2:
+			printf("Error: Nombre de archivo invalido. Máximo una carpeta\n");
+			break;
+		case 3:
+			printf("Error: El nombre de la carpeta pertence a un archivo\n");
+			break;
+		case 4:
+			printf("Error: El nombre del archivo pertenece a una carpeta\n");
+			break;
+		case 5:
+			printf("Ocurrio un error inesperado\n");
+			break;
+		
+	}
+}
+
 // MiniShell Interactiva
 void menu(){
 	clear_screen();
@@ -64,7 +88,7 @@ void menu(){
 				}
 
 				// Obtenemos donde se ubicara el archivo.
-				printf("Ingrese la ruta del DFS donde desea que se guarde el archivo:\n");
+				printf("Ingrese la ruta absoluta del DFS donde desea que se guarde el archivo:\n");
 				scanf("%s", rutaDFS);
 
 				// Pedimos al coordinador la direccion al nodo correspondiente.
@@ -92,27 +116,7 @@ void menu(){
 				if (&resultadoSubir == (int*) NULL) {
 					//clnt_perror (clnt, "call failed"); // No se que es esta linea
 				} else {
-					switch(resultadoSubir){
-						case 0:
-							printf("Shell: subida de archivo exitosa\n");
-							break;
-						case 1:
-							printf("Error al subir archivo:: null path\n");
-							break;
-						case 2:
-							printf("Error al subir archivo: Nombre de archivo invalido. Máximo una carpeta\n");
-							break;
-						case 3:
-							printf("Error al subir archivo: El nombre de la carpeta pertence a un archivo\n");
-							break;
-						case 4:
-							printf("Error al subir archivo: El nombre del archivo pertenece a una carpeta\n");
-							break;
-						case 5:
-							printf("Ocurrio un error inesperado al subir el archivo\n");
-							break;
-						
-					}
+					printResultado(resultadoSubir);
 				}
 				
 				break;
@@ -120,7 +124,7 @@ void menu(){
 			case 3: ////////////////////////////////////////// bajar(file)
 
 				// Obtenemos la ruta del archivo que desea descargar el usuario y el nombre con el que lo quiere guardar
-				printf("Ingrese la ruta del archivo en el DFS.\n");
+				printf("Ingrese la ruta absouluta del archivo en el DFS.\n");
 				scanf("%s",rutaDFS);
 				printf("Ingrese el nombre del archivo en su sistema.\n");
 				scanf("%s",rutaLocal);
@@ -146,23 +150,26 @@ void menu(){
 				if (recivedFile == (file_to_send *) NULL) {
 					// clnt_perror (clnt, "call failed"); // No se que es esta linea
 					printf("Error: no se recibio ningun archivo\n");
-					break;
-					
+					break;				
 				}
-
-				// Guardamos el archivo en el almacenamiento permanente.
-				int file_length = recivedFile->size;
-				char* buffer = recivedFile->data;
-				FILE* newfile;
-				if (!(newfile= (FILE*) fopen(rutaLocal,"wb"))) {
-					printf("Shell: Error al crear el nuevo archivo\n");
-					fclose(newfile);
-					exit(0);
-				}
-				//printf("Shell: El contenido del buffer es %s\n", buffer);
-				int items_writen = fwrite(buffer, file_length, 1, newfile);
-				printf("Shell: Se escribieron %i bytes en el archivo %s\n", file_length*items_writen, rutaLocal);
-				fclose(newfile);
+				
+				if ( recivedFile->size >= 0) {					
+					// Guardamos el archivo en el almacenamiento permanente.
+					int file_length = recivedFile->size;
+					char* buffer = recivedFile->data;
+					FILE* newfile;
+					if (!(newfile= (FILE*) fopen(rutaLocal,"wb"))) {
+						printf("Shell: Error al crear el nuevo archivo\n");
+						fclose(newfile);
+						exit(0);
+					}
+					//printf("Shell: El contenido del buffer es %s\n", buffer);
+					int items_writen = fwrite(buffer, file_length, 1, newfile);
+					printf("Shell: Se escribieron %i bytes en el archivo %s\n", file_length*items_writen, rutaLocal);
+					fclose(newfile);				
+				} else {
+					printf("Error: comprobar la validez de la ruta en el DFS.\n");
+				}				
 
 				break;
 
