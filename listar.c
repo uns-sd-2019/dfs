@@ -95,9 +95,9 @@ char * listarArbol(char * rutas[], int cantRutas ){
     }
     // Arranca el imprimir por pantalla:
     char * retorno =malloc(10000);
+    strcpy(retorno,".\n");
     for(i=0;i<cantRutas;i++){
       if(i==0){
-        strcat(retorno,".\n");
         // printf(".\n");
         for (j=0;j<cantPalabras[i];j++){
           for(k=0;k<j;k++){
