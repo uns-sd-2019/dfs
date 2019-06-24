@@ -1,4 +1,4 @@
-help: 
+help:
 	@echo "Formato de uso:"
 	@echo "# make debian : Compilar para sistemas operativos Debian"
 	@echo "# make fedora : Compilar para sistemas operativos Fedora"
@@ -20,8 +20,8 @@ shell: shell.c Nodo_clnt.c Nodo.h Nodo_xdr.c Coordinador_clnt.c Coordinador.h fi
 nodo: nodo.c Nodo_svc.c Nodo.h Nodo_xdr.c Coordinador_clnt.c Coordinador.h filehandler.c versionado.c
 	gcc ${PARAM} -lnsl -o nodo nodo.c Coordinador_clnt.c Nodo_svc.c Coordinador.h Nodo.h Nodo_xdr.c filehandler.c versionado.c
 
-coordinador: coordinador.c Coordinador_svc.c Coordinador.h
-	gcc ${PARAM} -lnsl -o coordinador coordinador.c Coordinador_svc.c Coordinador.h
+coordinador: coordinador.c Coordinador_svc.c Coordinador.h listar.c
+	gcc ${PARAM} -lnsl -o coordinador coordinador.c Coordinador_svc.c Coordinador.h listar.c
 
 Nodo_clnt.c Nodo_xdr.c: Nodo.x
 	rpcgen -l -o Nodo_clnt.c Nodo.x

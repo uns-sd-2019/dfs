@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <dirent.h>
+#include "listar.h"
 
 #define MAX_NODOS 10
 
@@ -23,7 +24,7 @@ struct nodo{
 //hay que crear este archivo.txt y dejarlo ahi agregado
 char * tablaArchivosFile = rutaTabla;
 
-struct nodo tablaNodos[MAX_NODOS];	//Tabla que mantendra la 
+struct nodo tablaNodos[MAX_NODOS];	//Tabla que mantendra la
 int cant_nodos=0;
 
 struct celda tablaArchivos[TABLA_SIZE];	//Tabla que tendra un maximo de TABLA_SIZE elementos compuestos de nombre, bit de valido e IP del nodo que contenga ese archivo
@@ -123,7 +124,7 @@ void agregarEnTablaArchivos(char * path, int bitValido, char * ipNodo){
 	strcpy(nueva_celda->ipNodo,ipNodo);
 	tablaArchivos[cant_archivos]=*nueva_celda;
 	cant_archivos++;
-	
+
 	//agrego en la tabla de archivos para mantener consistencia
 	if(bitValido==0){
 		optabla_agregar(tablaArchivosFile,path,0,ipNodo);
@@ -178,17 +179,17 @@ char* obtenerNodoMenosUsado(){
 
 char ** rqsubir_1_svc(char ** path, struct svc_req *cliente){
 	static char * resultadoFinal;
-	
+
 	printf("═══════════════════════════ rqsubir ═══════════════════════════\n");
-	
-	// Si el caracter inicial es '/' se elimina. Rutas relativas en dfs. 
+
+	// Si el caracter inicial es '/' se elimina. Rutas relativas en dfs.
     if ((*path)[0] == '/') {
 		strcpy(*path, &((*path)[1]));
-	}    
-	
+	}
+
 	printf("El cliente pidio subir el archivo %s.\n", *path);
 	//Buscar en la tabla si existe el archivo deseado, sino elegir un nuevo nodo;
-	int ipLoc;	
+	int ipLoc;
 	listarTablaArchivos();
 	resultadoFinal = malloc(16);
 	char* v_path = *path;
@@ -198,32 +199,32 @@ char ** rqsubir_1_svc(char ** path, struct svc_req *cliente){
 		printf("Ya existe el archivo %s, se sube nueva version y se renombra anterior\n", v_path);
 		//TODO Aca va el IP del nodo que ya tenia el archivo.
 		printf("El archivo debe ir al nodo %s\n", tablaArchivos[ipLoc].ipNodo );
-		strcpy(resultadoFinal , tablaArchivos[ipLoc].ipNodo); 
+		strcpy(resultadoFinal , tablaArchivos[ipLoc].ipNodo);
 	} else {
 		// Elegir un nuevo ip (el menos usado) y enviarlo al cliente
 		//strcpy(resultadoFinal,obtenerNodoMenosUsado());
 		printf("Todavia no existe el archivo %s\n", v_path);
-		
+
 		strcpy(resultadoFinal,obtenerNodoMenosUsado());
-		
+
 		//agrego en las tablas del coordinador el nuevo archivo, deberé modificar el bit de válido y ponerlo en 1 una vez subido HACER LUEGO
 		agregarEnTablaArchivos(v_path, 0, resultadoFinal);
-	}		
+	}
 
 	listarTablaArchivos();
-	
+
 	return (&resultadoFinal);
 }
 
 char ** rqbajar_1_svc(char ** path, struct svc_req *cliente){
-	
+
 	printf("═══════════════════════════ rqbajar ═══════════════════════════\n");
-	
-	// Si el caracter inicial es '/' se elimina. Rutas relativas en dfs. 
+
+	// Si el caracter inicial es '/' se elimina. Rutas relativas en dfs.
     if ((*path)[0] == '/') {
 		strcpy(*path, &((*path)[1]));
-	} 
-	
+	}
+
 	char* v_path = *path;
 	printf("El cliente pidio por el archivo %s.\n",v_path);
 	int ipLoc;
@@ -243,12 +244,12 @@ char ** rqbajar_1_svc(char ** path, struct svc_req *cliente){
 	// Retorna un error. NULL pointer?
 	}
 }
- // Pone en listado un string que representa el ls del dir actual. 
+ // Pone en listado un string que representa el ls del dir actual.
 void listdir(const char *name, int indent, char *listado)
-{       
+{
     DIR *dir;
     struct dirent *entry;
-    
+
     char *string = (char*) malloc(1024);
     string[0] = '\0';
 
@@ -271,41 +272,44 @@ void listdir(const char *name, int indent, char *listado)
             strcat(listado, string);
         }
     }
-    closedir(dir); 
-    free(string);          
+    closedir(dir);
+    free(string);
 }
 
 char ** ls_1_svc(void * vacio, struct svc_req *cliente){
-	static char *result;
-	
-	result = (char*) malloc(1024);
-	result[0] = '\0';
-
-	listdir("rootDFS", 0, result);
-	
-	printf("\n%s\n", result);
-
-	return &result;
+  char * rutas[cant_archivos];
+  int i;
+  for (i=0;i<cant_archivos;i++) {
+    rutas[i] = malloc(strlen(tablaArchivos[i].nombre+1));
+  }
+  for (i=0;i<cant_archivos;i++) {
+    strcpy(rutas[i],tablaArchivos[i].nombre);
+  }
+  static char * retorno;
+  retorno = malloc (10000);
+  retorno = listarArbol(rutas,cant_archivos);
+  return &retorno;
 }
 
 
 //HACER FIX AQUI, TERMINAR
-int * subirack_1_svc(char ** path, struct svc_req *cliente) {	
+int * subirack_1_svc(char ** path, struct svc_req *cliente) {
 	static int codigo = 0;
-	
+
 	printf("═══════════════════════════ subirack ═══════════════════════════\n");
-		
+
+
 	char *needle = "#ver";
 	char *ptr = strstr(*path, needle);
-	if (ptr != NULL) 
-	{	
+	if (ptr != NULL)
+	{
 		char *delim = "#";
 		char *pathAux = malloc(sizeof(char) * strlen(*path) + 1);
 		strcpy(pathAux, *path);
 		// Se modifica el primer arg
 		char *token = strtok(pathAux, delim);
 		printf("Nueva version de %s disponible\n", token);
-		
+
 		// TODO: cambiar una vez que se pueda obtener IP segun path.
 		char *dirIP = tablaArchivos[buscarTablaArchivos(token)].ipNodo;
 		printf("La nueva version se ubicada en el nodo %s y con el nombre %s\n", dirIP, *path );
@@ -323,12 +327,12 @@ int * subirack_1_svc(char ** path, struct svc_req *cliente) {
 
 		free(pathAux);
 		codigo = 1;
-	} 
-	else 
+	}
+	else
 	{
 		printf("Un nodo me quiere notificar sobre la subida del archivo %s\n", *path );
-		
-		int esCorrecto = buscarTablaArchivos(*path);				
+
+		int esCorrecto = buscarTablaArchivos(*path);
 		if(esCorrecto!=-1){
 		  tablaArchivos[esCorrecto].disponible=1;
 		  int posEnTablaNodos=buscarTablaNodos(tablaArchivos[esCorrecto].ipNodo);
@@ -341,27 +345,27 @@ int * subirack_1_svc(char ** path, struct svc_req *cliente) {
 		  else
 		  {
 		  	printf("Error, no se encuentra el nodo en la tabla de nodos\n");
-		  }			  
+		  }
 		}else{
 		  //elimino de la tabla de archivos a este archivo agregado, y de el archivo de consistencia ya que hubo un error
 		  //if(eliminarDeTablaArchivos(*path)){
 			  //que tire algun cartel de error
 			printf("No encuentro el archivo que se quiere confirmar como subido.\n");
-		}		
+		}
 	}
-	
+
 	if (codigo ==1 ) {
 		printf("El nodo me confirma que subio el archivo %s.\n",*path);
 		listarTablaArchivos();
 	}
-	
+
 	return &codigo;
 }
 
 int * anunciarnodo_1_svc(char** direccion,struct svc_req *cliente){
 	//Funcion invocada por el nodo al iniciar su ejecucion, para anunciar su direccion IP
 	static int result;
-	
+
 	printf("═══════════════════════════ anunciarnodo ═══════════════════════════\n");
 
 	printf("Se anuncia la llegada del nodo con ip: %s\n", *direccion );
@@ -380,15 +384,15 @@ int * anunciarnodo_1_svc(char** direccion,struct svc_req *cliente){
 			else
 				fprintf(fd, "%s\n", *direccion );
 			fclose(fd);
-		///////////////////////////////	
+		///////////////////////////////
 
-		
+
 		strcpy(nuevo_nodo->direccion,*direccion);
 		nuevo_nodo->carga=0;
-		tablaNodos[cant_nodos]=*nuevo_nodo;		
+		tablaNodos[cant_nodos]=*nuevo_nodo;
 		result=cant_nodos;
 		cant_nodos++;
-		printf("Se agrego con exito el nodo a la tabla de nodos activos\n" );	
+		printf("Se agrego con exito el nodo a la tabla de nodos activos\n" );
 
 	}
 	else
@@ -405,7 +409,7 @@ int * anunciarnodo_1_svc(char** direccion,struct svc_req *cliente){
 int* bajarnodo_1_svc(char** direccion,struct svc_req *cliente){
 	//Funcion invocada por el nodo antes de terminar su ejecucion, para bajar su ip de la lista de nodos activos
 	static int result;
-	
+
 	printf("═══════════════════════════ bajarnodo ═══════════════════════════\n");
 
 	printf("El nodo %s quiere bajarse de la lista de nodos activos\n", *direccion );
@@ -443,20 +447,20 @@ int* bajarnodo_1_svc(char** direccion,struct svc_req *cliente){
 // --------------------------------------------------
 // --------------------------------------------------
 /*
-* 
+*
 Esta tabla debe tener el siguiente formato:
-path1@bitValido1@IP1 
-path2@bitValido2@IP2 
+path1@bitValido1@IP1
+path2@bitValido2@IP2
 ...
 
 asi tal cual (definir un archivo de nombre "file.txt" con la tabla adentro)
 */
 
 //agregara una entrada a la tabla al final del archivo
-void optabla_agregar(char * filename, char * path, int bitValido, char * IP){	
+void optabla_agregar(char * filename, char * path, int bitValido, char * IP){
 	FILE *file = fopen ( filename, "a+" );
 
-	//tengo que definir un buffer porque el strcat pide memoria "definida" no en el aire	
+	//tengo que definir un buffer porque el strcat pide memoria "definida" no en el aire
 	char buffer[256];
 	strcpy(buffer,path);
 	fseek(file,0,SEEK_END);
@@ -474,7 +478,7 @@ void optabla_agregar(char * filename, char * path, int bitValido, char * IP){
 
 //modificara aquella linea de la tabla con el path, poniendo el nuevo path, nuevo bit, o IP
 int optabla_modificar(char * filename, char * path, char * newPath, int bitValido, char * IP){
-	
+
 	char delim[]="@";
 	FILE *file = fopen ( filename, "a+" );
 	FILE *tmp_file = fopen("temporary.txt","a+");
@@ -484,11 +488,11 @@ int optabla_modificar(char * filename, char * path, char * newPath, int bitValid
 		while ( fgets ( line, sizeof line, file ) != NULL)/* read a line */
 		{
 			char aux[128];
-			strncpy(aux,line,128);		
-			
+			strncpy(aux,line,128);
+
 			//aca hace algo que rompe la linea
 			char *ptr = strtok(line,delim); //me fijo solo con el path
-			
+
 			if(ptr != NULL){
 				if(strcmp(ptr,path) != 0 || encontre == 1){
 					fputs(aux,tmp_file);
@@ -503,10 +507,10 @@ int optabla_modificar(char * filename, char * path, char * newPath, int bitValid
 					fputs(buffer,tmp_file);
 					encontre=1;
 				}
-				ptr = strtok(NULL,delim);	
+				ptr = strtok(NULL,delim);
 			}
-			
-			
+
+
 		}
 		fflush(file);
 		fclose(file);
@@ -525,7 +529,7 @@ int optabla_modificar(char * filename, char * path, char * newPath, int bitValid
 
 //eliminara aquella linea de la tabla que se corresponda con el path
 int optabla_suprimir(char * filename, char * path){
-	
+
 	char delim[]="@";
 	FILE *file = fopen ( filename, "a+" );
 	FILE *tmp_file = fopen("temporary.txt","a+");
@@ -535,21 +539,21 @@ int optabla_suprimir(char * filename, char * path){
 		while ( fgets ( line, sizeof line, file ) != NULL)/* read a line */
 		{
 			char aux[128];
-			strncpy(aux,line,128);		
-			
+			strncpy(aux,line,128);
+
 			//aca hace algo que rompe la linea
 			char *ptr = strtok(line,delim); //me fijo solo con el path
-			
+
 			if(ptr != NULL){
 				if(strcmp(ptr,path) != 0 || encontre == 1){
 					fputs(aux,tmp_file);
 				}else{
 					encontre = 1;
 				}
-				ptr = strtok(NULL,delim);	
+				ptr = strtok(NULL,delim);
 			}
-			
-			
+
+
 		}
 		fflush(file);
 		fclose(file);
@@ -570,7 +574,7 @@ int optabla_suprimir(char * filename, char * path){
 int optabla_leer(char * filename){
 	printf("Chequeo archivo txt por si hay algo escrito:\n");
 	char delim[]="@";
-	FILE *file = fopen ( filename, "a+" );	
+	FILE *file = fopen ( filename, "a+" );
 	if ( file != NULL ){
 		char line [ 128 ]; /* or other suitable maximum line size */
 		while ( fgets ( line, sizeof line, file ) != NULL ) /* read a line */
@@ -594,20 +598,20 @@ int optabla_leer(char * filename){
 						i=0;
 						strncpy(nueva_celda->ipNodo,ptr,strlen(ptr)-1);// insert
 					}
-					
+
 				}
-				ptr = strtok(NULL,delim);				
-			}			
+				ptr = strtok(NULL,delim);
+			}
 			//Inserts en el array de los datos conseguidos.
-			//NO insertar en el txt porq ya están ahi.	
+			//NO insertar en el txt porq ya están ahi.
 			tablaArchivos[cant_archivos]=*nueva_celda; // Add al array
 			cant_archivos++;
 		}
 		fflush(file);
 		fclose ( file );
-		
+
 	}else{
-		perror ( filename ); 
+		perror ( filename );
 	}
 	listarTablaArchivos(); // << Debug, se podria borrar.
 	return 0;

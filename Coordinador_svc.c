@@ -122,7 +122,7 @@ main (int argc, char **argv)
 	optabla_leer(rutaTabla); // << operacionesTabla.h
 	recuperarNodos();	// << operacionesTabla.h
 	svc_run ();
-	fprintf (stderr, "%s", "svc_run returned");	
+	fprintf (stderr, "%s", "svc_run returned");
 	exit (1);
 	/* NOTREACHED */
 }

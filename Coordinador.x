@@ -5,6 +5,15 @@
   subirACK: El nodo avisa al coordinador que un archivo fue cargado al DFS de manera correcta.
   (Hay que ver el tipo de retorno (solo informa errores))
 */
+/*  Implementacion anterior de ls
+const MAXRUTA = 64;
+const CANTRUTAS = 100;
+typedef string ruta<MAXRUTA>;
+struct rutasListar {
+  int cantRutas;
+  ruta rutas[CANTRUTAS];
+};
+*/
 program COORDINADOR{
   version VERSION1{
     string rqsubir(string) = 1;

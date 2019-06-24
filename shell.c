@@ -6,7 +6,6 @@
 #include <unistd.h>
 #include <rpc/rpc.h>
 #include <string.h>
-
 // "Clear" the screen by scrolling down
 #define clear_screen() printf("\033[H\033[J");
 
@@ -35,7 +34,7 @@ void printResultado(int resultado) {
 		case 5:
 			printf("Ocurrio un error inesperado\n");
 			break;
-		
+
 	}
 }
 
@@ -64,11 +63,11 @@ void menu(char *coord){
 	int menuoption;
 	int stop = 0;
 
+
 	char *rutaDFS = (char*) malloc(64);		// PATH del DFS (el usuario lo obtiene mediante ls)
 	char *rutaLocal = (char*) malloc(64);	// PATH de un archivo local del usuario (ej: /home/user/myfile.txt)
-	char *arbolDFS = (char*) malloc(1024);	// Arbol de directorios completo del DFS (respuesta del ls)
 	char *vacio;  //Puntero vacio que se debe enviar en la consulta RPC ls. Hay que declararlo char* y castearlo cuando se invoca ls
-
+	int i;
 	while (stop == 0) {
 		printf(" --------------------- MENU ------------------- \n");
 		printf("Indique la operación a realizar:\n");
@@ -84,13 +83,11 @@ void menu(char *coord){
 		printf("Ejecutar: ");
 		scanf("%i", &menuoption);
 
+
 		switch (menuoption) {
 			case 1: ////////////////////////////////////////// ls()
 				conectarCoord(coord);
-				arbolDFS = *( ls_1((void*)&vacio,clntcoor) );
-				//arbolDFS = "├ Directorio1\n│\t├ Archivo1\n│\t└ Archivo2\n└ Archivo3"; // para testing de formato
-				printf ("El arbol de directorios es:\n\n");
-				printf("%s\n", arbolDFS);	
+				printf("%s",*ls_1((void*)&vacio,clntcoor));
 				clnt_destroy (clntcoor);
 				break;
 
@@ -133,11 +130,11 @@ void menu(char *coord){
 					//clnt_perror (clnt, "call failed"); // No se que es esta linea
 				} else {
 					printResultado(resultadoSubir);
-				}					
+				}
 				clnt_destroy (clntcoor);
 				clnt_destroy (clntnodo);
 				break;
-				
+
 			case 3: ////////////////////////////////////////// bajar(file)
 
 				// Obtenemos la ruta del archivo que desea descargar el usuario y el nombre con el que lo quiere guardar
@@ -163,10 +160,10 @@ void menu(char *coord){
 				if (recivedFile == (file_to_send *) NULL) {
 					// clnt_perror (clnt, "call failed"); // No se que es esta linea
 					printf("Error: no se recibio ningun archivo\n");
-					break;				
+					break;
 				}
-				
-				if ( recivedFile->size >= 0) {					
+
+				if ( recivedFile->size >= 0) {
 					// Guardamos el archivo en el almacenamiento permanente.
 					int file_length = recivedFile->size;
 					char* buffer = recivedFile->data;
@@ -179,10 +176,10 @@ void menu(char *coord){
 					//printf("Shell: El contenido del buffer es %s\n", buffer);
 					int items_writen = fwrite(buffer, file_length, 1, newfile);
 					printf("Shell: Se escribieron %i bytes en el archivo %s\n", file_length*items_writen, rutaLocal);
-					fclose(newfile);				
+					fclose(newfile);
 				} else {
 					printf("Error: comprobar la validez de la ruta en el DFS.\n");
-				}				
+				}
 				clnt_destroy (clntcoor);
 				clnt_destroy (clntnodo);
 				break;
@@ -208,13 +205,11 @@ void menu(char *coord){
 
 // Al iniciar el cliente se carga la direccion ip del coordinador: cliente(ip)
 int main(int argc, char *argv[]) {
-	
+
 	//Caso en que no se paso unicamente la direccion ip del coordinador por parametro.
 	if (argc != 2) {
 	  printf ("ERROR: Cantidad de parametros invalida. Falta IP del coordinador?\n");
 	  exit(1);
-	}	
+	}
 	menu(argv[1]);
 }
-
-
