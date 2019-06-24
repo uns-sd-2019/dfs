@@ -92,12 +92,12 @@ void agregarEnTablaArchivos(char * path, int bitValido, char * ipNodo){
 	cant_archivos++;
 	
 	//agrego en la tabla de archivos para mantener consistencia
-	/*if(bitValido==0){
+	if(bitValido==0){
 		optabla_agregar(tablaArchivosFile,path,0,ipNodo);
 	}else{
 		optabla_agregar(tablaArchivosFile,path,1,ipNodo);
 	}
-	*/
+
 	//aumento la carga del nodo ya que le agregue un archivo a el
 	int i;
 	for(i=0;i<cant_nodos; i++) {
@@ -259,15 +259,20 @@ int * subirack_1_svc(char ** path, struct svc_req *cliente) {
 	{
 		printf("Un nodo me quiere notificar sobre la subida del archivo %s\n", *path );
 		
-		// Agregar a la tabla el archivo que aclara el path. NO ME CONVIENE HACER ESTO ACA PORQUE NO TENGO EL NODO Y NO SE CUAL FUE
-		//EL MENOS USADO QUE SE ELIGIÓ, ME CONVIENE AGREGAR ANTES A LA TABLA EL ARCHIVO y si falla en algun lado, notificar y aquí eliminar esta entrada
-		//agregada
-
-		//VER COMO HACER PARA VERIFICAR SI FUE CORRECTO O NO, CUANDO TENGO UNA VARIABLE QUE ME INDICA SI ES CORRECTO, ENTONCES:
 		int esCorrecto = buscarTablaArchivos(*path);				
 		if(esCorrecto!=-1){
 		  tablaArchivos[esCorrecto].disponible=1;
-		  codigo = 1;		  
+		  int posEnTablaNodos=buscarTablaNodos(tablaArchivos[esCorrecto].ipNodo);
+		  optabla_modificar(tablaArchivosFile,*path,*path,1,tablaArchivos[esCorrecto].ipNodo);
+		  if(posEnTablaNodos != -1)
+		  {
+		  	tablaNodos[posEnTablaNodos].carga++;
+		  	codigo=1;
+		  }
+		  else
+		  {
+		  	printf("Error, no se encuentra el nodo en la tabla de nodos\n");
+		  }			  
 		}else{
 		  //elimino de la tabla de archivos a este archivo agregado, y de el archivo de consistencia ya que hubo un error
 		  //if(eliminarDeTablaArchivos(*path)){
@@ -380,11 +385,11 @@ asi tal cual (definir un archivo de nombre "file.txt" con la tabla adentro)
 
 //agregara una entrada a la tabla al final del archivo
 void optabla_agregar(char * filename, char * path, int bitValido, char * IP){	
-	FILE *file = fopen ( filename, "r+" );
+	FILE *file = fopen ( filename, "a+" );
 
 	//tengo que definir un buffer porque el strcat pide memoria "definida" no en el aire	
 	char buffer[256];
-	strncpy(buffer,path,256);
+	strcpy(buffer,path);
 	fseek(file,0,SEEK_END);
 	strcat(buffer,"@");
 	bitValido ? strcat(buffer,"1") : strcat(buffer,"0");
@@ -402,8 +407,8 @@ void optabla_agregar(char * filename, char * path, int bitValido, char * IP){
 int optabla_modificar(char * filename, char * path, char * newPath, int bitValido, char * IP){
 	
 	char delim[]="@";
-	FILE *file = fopen ( filename, "r+" );
-	FILE *tmp_file = fopen("temporary.txt","w");
+	FILE *file = fopen ( filename, "a+" );
+	FILE *tmp_file = fopen("temporary.txt","a+");
 	if ( file != NULL ){
 		char line [ 128 ]; /* or other suitable maximum line size */
 		int encontre = 0;
@@ -420,7 +425,7 @@ int optabla_modificar(char * filename, char * path, char * newPath, int bitValid
 					fputs(aux,tmp_file);
 				}else{
 					char buffer[256];
-					strncpy(buffer,newPath,256);
+					strcpy(buffer,newPath);
 					strcat(buffer,"@");
 					bitValido ? strcat(buffer,"1") : strcat(buffer,"0");
 					strcat(buffer,"@");
@@ -453,8 +458,8 @@ int optabla_modificar(char * filename, char * path, char * newPath, int bitValid
 int optabla_suprimir(char * filename, char * path){
 	
 	char delim[]="@";
-	FILE *file = fopen ( filename, "r+" );
-	FILE *tmp_file = fopen("temporary.txt","w");
+	FILE *file = fopen ( filename, "a+" );
+	FILE *tmp_file = fopen("temporary.txt","a+");
 	if ( file != NULL ){
 		char line [ 128 ]; /* or other suitable maximum line size */
 		int encontre = 0;
@@ -496,7 +501,7 @@ int optabla_suprimir(char * filename, char * path){
 int optabla_leer(char * filename){
 	printf("Chequeo archivo txt por si hay algo escrito:\n");
 	char delim[]="@";
-	FILE *file = fopen ( filename, "r" );	
+	FILE *file = fopen ( filename, "a+" );	
 	if ( file != NULL ){
 		char line [ 128 ]; /* or other suitable maximum line size */
 		while ( fgets ( line, sizeof line, file ) != NULL ) /* read a line */
