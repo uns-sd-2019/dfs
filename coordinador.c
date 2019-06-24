@@ -158,22 +158,23 @@ char ** rqsubir_1_svc(char ** path, struct svc_req *cliente){
 	int ipLoc;	
 	listarTablaArchivos();
 	resultadoFinal = malloc(16);
+	char* v_path = *path;
 
 
-	if (ipLoc=buscarTablaArchivos(*path) !=-1 ) {
-		printf("Ya existe el archivo %s, se sube nueva version y se renombra anterior\n", *path);
+	if ( (ipLoc=buscarTablaArchivos(v_path)) !=-1 ) {
+		printf("Ya existe el archivo %s, se sube nueva version y se renombra anterior\n", v_path);
 		//TODO Aca va el IP del nodo que ya tenia el archivo.
-		
-		resultadoFinal = "localhost"; 
+		printf("El archivo debe ir al nodo %s\n", tablaArchivos[ipLoc].ipNodo );
+		strcpy(resultadoFinal , tablaArchivos[ipLoc].ipNodo); 
 	} else {
 		// Elegir un nuevo ip (el menos usado) y enviarlo al cliente
 		//strcpy(resultadoFinal,obtenerNodoMenosUsado());
-		printf("Todavia no existe el archivo %s\n", *path);
+		printf("Todavia no existe el archivo %s\n", v_path);
 		
-		resultadoFinal = "localhost";      // IP para probar
+		strcpy(resultadoFinal,obtenerNodoMenosUsado());
 		
 		//agrego en las tablas del coordinador el nuevo archivo, deberé modificar el bit de válido y ponerlo en 1 una vez subido HACER LUEGO
-		agregarEnTablaArchivos(*path, 0, resultadoFinal);
+		agregarEnTablaArchivos(v_path, 0, resultadoFinal);
 	}		
 
 	listarTablaArchivos();
@@ -237,10 +238,20 @@ int * subirack_1_svc(char ** path, struct svc_req *cliente) {
 		printf("Nueva version de %s disponible\n", token);
 		
 		// TODO: cambiar una vez que se pueda obtener IP segun path.
-		char *dirIP = "localhost";
+		char *dirIP = tablaArchivos[buscarTablaArchivos(token)].ipNodo;
+		printf("La nueva version se ubicada en el nodo %s y con el nombre %s\n", dirIP, *path );
 		agregarEnTablaArchivos(*path, 1, dirIP);
-		
-		
+		int posEnTablaNodos=buscarTablaNodos(dirIP);
+		if(posEnTablaNodos != -1)
+		{
+			tablaNodos[posEnTablaNodos].carga++;
+			codigo=1;
+		}
+		else
+		{
+			printf("Error, no se encuentra el nodo en la tabla de nodos\n");
+		}
+
 		free(pathAux);
 		codigo = 1;
 	} 
@@ -287,6 +298,16 @@ int * anunciarnodo_1_svc(char** direccion,struct svc_req *cliente){
 	{
 		printf("El nodo %s no se encuentra registrado, agregando a la tabla de nodos activos\n", *direccion );
 		struct nodo *nuevo_nodo = malloc(sizeof(struct nodo));
+
+		//Agrego nodo a memoria estable
+			FILE *fd = fopen("./ArchivoNodos.txt","ab");
+			if(fd == NULL)
+				printf("Coordinador: Error al crear ArchivoNodos.txt\n");
+			else
+				fprintf(fd, "%s\n", *direccion );
+			fclose(fd);
+		///////////////////////////////	
+
 		
 		strcpy(nuevo_nodo->direccion,*direccion);
 		nuevo_nodo->carga=0;
@@ -299,7 +320,6 @@ int * anunciarnodo_1_svc(char** direccion,struct svc_req *cliente){
 	else
 	{
 		printf("El nodo %s ya se encuentra registrado como activo\n", *direccion );
-		result=-1;
 	}
 
 	return &result;
